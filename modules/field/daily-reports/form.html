@@ -1,0 +1,1782 @@
+\field\daily-reports\form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create/Edit Daily Report - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../assets/css/custom.css">
+    <link rel="stylesheet" href="../../../assets/css/components/sidebar.css">
+    <!-- Include Quill editor CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet">
+    <script src="../../../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../../../assets/js/core/auth.js" defer></script>
+    <script src="../../../assets/js/core/permissions.js" defer></script>
+    <script src="../../../assets/js/core/supabase-client.js" defer></script>
+    <!-- Include Quill editor JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/purify-es@1.0.1/dist/purify-es.min.js"></script>
+    <script src="daily-reports.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h1 class="h3" id="form-title">Create Daily Report</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../../../pages/dashboard.html">Dashboard</a></li>
+                                <li class="breadcrumb-item">Field</li>
+                                <li class="breadcrumb-item"><a href="list.html">Daily Reports</a></li>
+                                <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-action">Create</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                
+                <form id="daily-report-form">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Report Details</h5>
+                                    <div id="status-select-container">
+                                        <select class="form-select form-select-sm" id="status" name="status">
+                                            <option value="draft">Draft</option>
+                                            <option value="submitted">Submit</option>
+                                            <option value="reviewed" class="permission-review">Review</option>
+                                            <option value="rejected" class="permission-review">Reject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="report-number" class="form-label">Report Number</label>
+                                            <input type="text" class="form-control" id="report-number" name="report_number" placeholder="Auto-generated if blank" readonly>
+                                            <div class="form-text">Report number will be generated automatically</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="report-date" class="form-label">Report Date *</label>
+                                            <input type="date" class="form-control" id="report-date" name="report_date" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="author" class="form-label">Author *</label>
+                                            <select class="form-select" id="author" name="author_id" required>
+                                                <option value="">Select Author</option>
+                                                <!-- Options will be loaded dynamically -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="weather-condition" class="form-label">Weather Condition *</label>
+                                            <select class="form-select" id="weather-condition" name="weather_condition" required>
+                                                <option value="">Select Weather</option>
+                                                <option value="sunny">Sunny</option>
+                                                <option value="partly_cloudy">Partly Cloudy</option>
+                                                <option value="cloudy">Cloudy</option>
+                                                <option value="rain">Rain</option>
+                                                <option value="snow">Snow</option>
+                                                <option value="fog">Fog</option>
+                                                <option value="wind">Windy</option>
+                                                <option value="storm">Storm</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="temperature" class="form-label">Temperature</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="temperature" name="temperature" placeholder="e.g., 72">
+                                                <select class="form-select" id="temperature-unit" name="temperature_unit" style="max-width: 80px;">
+                                                    <option value="F">°F</option>
+                                                    <option value="C">°C</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="precipitation" class="form-label">Precipitation</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" class="form-control" id="precipitation" name="precipitation" placeholder="e.g., 0.5">
+                                                <select class="form-select" id="precipitation-unit" name="precipitation_unit" style="max-width: 80px;">
+                                                    <option value="in">in</option>
+                                                    <option value="mm">mm</option>
+                                                    <option value="cm">cm</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="work-performed" class="form-label">Work Performed *</label>
+                                        <div id="work-performed-editor" class="form-control quill-editor" style="height: 200px;"></div>
+                                        <input type="hidden" id="work-performed" name="work_performed">
+                                        <div class="invalid-feedback" id="work-performed-feedback"></div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Manpower</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="manpower-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Company</th>
+                                                        <th>Trade</th>
+                                                        <th>Workers</th>
+                                                        <th>Hours</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="manpower-rows">
+                                                    <tr id="manpower-empty-row">
+                                                        <td colspan="5" class="text-center">No manpower records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-manpower-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Manpower
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Equipment</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="equipment-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Equipment Type</th>
+                                                        <th>Quantity</th>
+                                                        <th>Hours Used</th>
+                                                        <th>Notes</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="equipment-rows">
+                                                    <tr id="equipment-empty-row">
+                                                        <td colspan="5" class="text-center">No equipment records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-equipment-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Equipment
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Materials</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="material-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Material</th>
+                                                        <th>Quantity</th>
+                                                        <th>Unit</th>
+                                                        <th>Notes</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="material-rows">
+                                                    <tr id="material-empty-row">
+                                                        <td colspan="5" class="text-center">No material records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-material-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Material
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="delays-issues" class="form-label">Delays or Issues</label>
+                                        <div id="delays-issues-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                        <input type="hidden" id="delays-issues" name="delays_issues">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Safety Incidents</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="safety-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Incident Type</th>
+                                                        <th>Description</th>
+                                                        <th>Actions Taken</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="safety-rows">
+                                                    <tr id="safety-empty-row">
+                                                        <td colspan="4" class="text-center">No safety incidents reported</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-safety-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Safety Incident
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Site Visitors</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="visitor-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Visitor Name</th>
+                                                        <th>Company</th>
+                                                        <th>Purpose</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="visitor-rows">
+                                                    <tr id="visitor-empty-row">
+                                                        <td colspan="4" class="text-center">No visitors recorded</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-visitor-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Visitor
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="additional-notes" class="form-label">Additional Notes</label>
+                                        <div id="additional-notes-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                        <input type="hidden" id="additional-notes" name="additional_notes">
+                                    </div>
+                                    
+                                    <!-- Review Section - Only shown for reviewed/rejected reports -->
+                                    <div id="review-section" class="mb-4 d-none">
+                                        <hr>
+                                        <h6 class="mb-3">Review Information</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="reviewer" class="form-label">Reviewer *</label>
+                                                <select class="form-select" id="reviewer" name="reviewer_id">
+                                                    <option value="">Select Reviewer</option>
+                                                    <!-- Options will be loaded dynamically -->
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="review-date" class="form-label">Review Date *</label>
+                                                <input type="date" class="form-control" id="review-date" name="review_date">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="review-comments" class="form-label">Review Comments *</label>
+                                            <div id="review-comments-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                            <input type="hidden" id="review-comments" name="review_comments">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">Attachments</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="file-upload" class="form-label">Upload Files</label>
+                                        <input class="form-control" type="file" id="file-upload" multiple>
+                                        <div class="form-text">Upload photos, documents, or other files related to this report.</div>
+                                    </div>
+                                    <div id="attachments-preview" class="d-none mb-3">
+                                        <h6 class="text-muted mb-2">Files to upload:</h6>
+                                        <ul class="list-group list-group-flush" id="attachments-list">
+                                            <!-- Preview of attachments will be added here -->
+                                        </ul>
+                                    </div>
+                                    <div id="existing-attachments">
+                                        <h6 class="text-muted mb-2">Existing attachments:</h6>
+                                        <div id="attachments-container">
+                                            <div class="text-center py-3 text-muted">
+                                                <i class="bi bi-file-earmark"></i>
+                                                <p class="mb-0">No attachments</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="save-btn">
+                                            <i class="bi bi-save me-1"></i> Save Report
+                                        </button>
+                                        <a href="list.html" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <!-- Manpower Modal -->
+    <div class="modal fade" id="manpower-modal" tabindex="-1" aria-labelledby="manpowerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manpowerModalLabel">Add Manpower</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="manpower-form">
+                        <input type="hidden" id="manpower-id">
+                        <div class="mb-3">
+                            <label for="manpower-company" class="form-label">Company *</label>
+                            <select class="form-select" id="manpower-company" required>
+                                <option value="">Select Company</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manpower-trade" class="form-label">Trade *</label>
+                            <input type="text" class="form-control" id="manpower-trade" placeholder="e.g., Carpenter, Electrician" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manpower-workers" class="form-label">Number of Workers *</label>
+                            <input type="number" min="1" class="form-control" id="manpower-workers" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="manpower-hours" class="form-label">Hours Worked *</label>
+                            <input type="number" min="0" step="0.5" class="form-control" id="manpower-hours" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-manpower-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Equipment Modal -->
+    <div class="modal fade" id="equipment-modal" tabindex="-1" aria-labelledby="equipmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="equipmentModalLabel">Add Equipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="equipment-form">
+                        <input type="hidden" id="equipment-id">
+                        <div class="mb-3">
+                            <label for="equipment-type" class="form-label">Equipment Type *</label>
+                            <input type="text" class="form-control" id="equipment-type" placeholder="e.g., Excavator, Crane" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="equipment-quantity" class="form-label">Quantity *</label>
+                            <input type="number" min="1" class="form-control" id="equipment-quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="equipment-hours" class="form-label">Hours Used *</label>
+                            <input type="number" min="0" step="0.5" class="form-control" id="equipment-hours" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="equipment-notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="equipment-notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-equipment-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Material Modal -->
+    <div class="modal fade" id="material-modal" tabindex="-1" aria-labelledby="materialModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="materialModalLabel">Add Material</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="material-form">
+                        <input type="hidden" id="material-id">
+                        <div class="mb-3">
+                            <label for="material-name" class="form-label">Material *</label>
+                            <input type="text" class="form-control" id="material-name" placeholder="e.g., Concrete, Steel" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="material-quantity" class="form-label">Quantity *</label>
+                            <input type="number" min="0" step="0.01" class="form-control" id="material-quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="material-unit" class="form-label">Unit *</label>
+                            <select class="form-select" id="material-unit" required>
+                                <option value="">Select Unit</option>
+                                <option value="ea">Each (ea)</option>
+                                <option value="ft">Feet (ft)</option>
+                                <option value="yd">Yards (yd)</option>
+                                <option value="m">Meters (m)</option>
+                                <option value="sqft">Square Feet (sq ft)</option>
+                                <option value="sqm">Square Meters (sq m)</option>
+                                <option value="cuyd">Cubic Yards (cu yd)</option>
+                                <option value="cum">Cubic Meters (cu m)</option>
+                                <option value="ton">Tons</option>
+                                <option value="kg">Kilograms (kg)</option>
+                                <option value="lb">Pounds (lb)</option>
+                                <option value="gal">Gallons (gal)</option>
+                                <option value="l">Liters (L)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="material-notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="material-notes" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-material-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safety Incident Modal -->
+    <div class="modal fade" id="safety-modal" tabindex="-1" aria-labelledby="safetyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="safetyModalLabel">Add Safety Incident</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="safety-form">
+                        <input type="hidden" id="safety-id">
+                        <div class="mb-3">
+                            <label for="safety-type" class="form-label">Incident Type *</label>
+                            <select class="form-select" id="safety-type" required>
+                                <option value="">Select Type</option>
+                                <option value="near_miss">Near Miss</option>
+                                <option value="first_aid">First Aid</option>
+                                <option value="medical_treatment">Medical Treatment</option>
+                                <option value="lost_time">Lost Time</option>
+                                <option value="property_damage">Property Damage</option>
+                                <option value="environmental">Environmental</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="safety-description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="safety-description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="safety-actions" class="form-label">Actions Taken *</label>
+                            <textarea class="form-control" id="safety-actions" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-safety-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Visitor Modal -->
+    <div class="modal fade" id="visitor-modal" tabindex="-1" aria-labelledby="visitorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="visitorModalLabel">Add Visitor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="visitor-form">
+                        <input type="hidden" id="visitor-id">
+                        <div class="mb-3">
+                            <label for="visitor-name" class="form-label">Visitor Name *</label>
+                            <input type="text" class="form-control" id="visitor-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="visitor-company" class="form-label">Company *</label>
+                            <input type="text" class="form-control" id="visitor-company" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="visitor-purpose" class="form-label">Purpose of Visit *</label>
+                            <textarea class="form-control" id="visitor-purpose" rows="2" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-visitor-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal for Status Change -->
+    <div class="modal fade" id="status-confirm-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Status Change</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="status-confirm-message">
+                    Are you sure you want to change the status?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-status-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let reportId = null;
+        let isEditMode = false;
+        let originalStatus = 'draft';
+        let workPerformedQuill;
+        let delaysIssuesQuill;
+        let additionalNotesQuill;
+        let reviewCommentsQuill;
+        let manpowerItems = [];
+        let equipmentItems = [];
+        let materialItems = [];
+        let safetyItems = [];
+        let visitorItems = [];
+        let selectedFiles = [];
+        let existingAttachments = [];
+        
+        // Modals
+        let manpowerModal;
+        let equipmentModal;
+        let materialModal;
+        let safetyModal;
+        let visitorModal;
+        let statusConfirmModal;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Check authentication
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) {
+                    window.location.href = '../../../pages/auth/login.html';
+                    return;
+                }
+                
+                // Get report ID from URL if editing
+                const urlParams = new URLSearchParams(window.location.search);
+                reportId = urlParams.get('id');
+                isEditMode = !!reportId;
+                
+                // Update page title and breadcrumb
+                if (isEditMode) {
+                    document.getElementById('form-title').textContent = 'Edit Daily Report';
+                    document.getElementById('breadcrumb-action').textContent = 'Edit';
+                }
+                
+                // Initialize modals
+                manpowerModal = new bootstrap.Modal(document.getElementById('manpower-modal'));
+                equipmentModal = new bootstrap.Modal(document.getElementById('equipment-modal'));
+                materialModal = new bootstrap.Modal(document.getElementById('material-modal'));
+                safetyModal = new bootstrap.Modal(document.getElementById('safety-modal'));
+                visitorModal = new bootstrap.Modal(document.getElementById('visitor-modal'));
+                statusConfirmModal = new bootstrap.Modal(document.getElementById('status-confirm-modal'));
+                
+                // Initialize Quill editors
+                initializeQuillEditors();
+                
+                // Load components
+                await loadComponents();
+                
+                // Load form data
+                await Promise.all([
+                    loadUsers(),
+                    loadProjectCompanies()
+                ]);
+                
+                // If editing, load report data
+                if (isEditMode) {
+                    await loadReportData();
+                } else {
+                    // Set default date to today for new reports
+                    document.getElementById('report-date').valueAsDate = new Date();
+                    
+                    // Set current user as default author
+                    const userData = await authService.getUserData();
+                    if (userData) {
+                        const authorSelect = document.getElementById('author');
+                        const options = Array.from(authorSelect.options);
+                        const option = options.find(option => option.dataset.userId === userData.id);
+                        if (option) {
+                            option.selected = true;
+                        }
+                    }
+                }
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                // Apply permissions
+                permissionsManager.applyPermissions();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                alert('An error occurred while loading the page. Please try refreshing.');
+            }
+        });
+        
+        function initializeQuillEditors() {
+            const toolbarOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['clean']
+            ];
+            
+            workPerformedQuill = new Quill('#work-performed-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Describe work performed on site...'
+            });
+            
+            delaysIssuesQuill = new Quill('#delays-issues-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Describe any delays or issues encountered...'
+            });
+            
+            additionalNotesQuill = new Quill('#additional-notes-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Add any additional notes or observations...'
+            });
+            
+            reviewCommentsQuill = new Quill('#review-comments-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Enter review comments...'
+            });
+            
+            // Update hidden inputs when quill content changes
+            workPerformedQuill.on('text-change', function() {
+                document.getElementById('work-performed').value = workPerformedQuill.root.innerHTML;
+            });
+            
+            delaysIssuesQuill.on('text-change', function() {
+                document.getElementById('delays-issues').value = delaysIssuesQuill.root.innerHTML;
+            });
+            
+            additionalNotesQuill.on('text-change', function() {
+                document.getElementById('additional-notes').value = additionalNotesQuill.root.innerHTML;
+            });
+            
+            reviewCommentsQuill.on('text-change', function() {
+                document.getElementById('review-comments').value = reviewCommentsQuill.root.innerHTML;
+            });
+        }
+        
+        async function loadComponents() {
+            try {
+                const headerContainer = document.getElementById('header-container');
+                const sidebarContainer = document.getElementById('sidebar-container');
+                const footerContainer = document.getElementById('footer-container');
+                
+                const headerResponse = await fetch('../../../components/layout/header.html');
+                const sidebarResponse = await fetch('../../../components/layout/sidebar.html');
+                const footerResponse = await fetch('../../../components/layout/footer.html');
+                
+                headerContainer.innerHTML = await headerResponse.text();
+                sidebarContainer.innerHTML = await sidebarResponse.text();
+                footerContainer.innerHTML = await footerResponse.text();
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                // Get project users (all users assigned to the current project)
+                const projectId = localStorage.getItem('cm_current_project_id');
+                
+                const { data, error } = await supabase
+                    .from('project_users')
+                    .select(`
+                        user_id,
+                        users (
+                            id,
+                            first_name,
+                            last_name,
+                            email
+                        )
+                    `)
+                    .eq('project_id', projectId);
+                
+                if (error) throw error;
+                
+                // Populate author select
+                const authorSelect = document.getElementById('author');
+                const reviewerSelect = document.getElementById('reviewer');
+                
+                // Clear existing options except the first one
+                while (authorSelect.options.length > 1) {
+                    authorSelect.remove(1);
+                }
+                
+                while (reviewerSelect.options.length > 1) {
+                    reviewerSelect.remove(1);
+                }
+                
+                // Add user options
+                data.forEach(item => {
+                    const user = item.users;
+                    const fullName = `${user.first_name} ${user.last_name}`;
+                    
+                    // Add to author select
+                    const authorOption = document.createElement('option');
+                    authorOption.value = user.id;
+                    authorOption.textContent = fullName;
+                    authorOption.dataset.userId = user.id;
+                    authorSelect.appendChild(authorOption);
+                    
+                    // Add to reviewer select
+                    const reviewerOption = document.createElement('option');
+                    reviewerOption.value = user.id;
+                    reviewerOption.textContent = fullName;
+                    reviewerSelect.appendChild(reviewerOption);
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+        
+        async function loadProjectCompanies() {
+            try {
+                // Get companies for the current project
+                const projectId = localStorage.getItem('cm_current_project_id');
+                
+                const { data, error } = await supabase
+                    .from('project_companies')
+                    .select(`
+                        company_id,
+                        companies (
+                            id,
+                            name,
+                            role
+                        )
+                    `)
+                    .eq('project_id', projectId);
+                
+                if (error) throw error;
+                
+                // Populate company select in the manpower modal
+                const companySelect = document.getElementById('manpower-company');
+                
+                // Clear existing options except the first one
+                while (companySelect.options.length > 1) {
+                    companySelect.remove(1);
+                }
+                
+                // Add company options
+                data.forEach(item => {
+                    const company = item.companies;
+                    const option = document.createElement('option');
+                    option.value = company.id;
+                    option.textContent = company.name;
+                    companySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading companies:', error);
+            }
+        }
+        
+        async function loadReportData() {
+            try {
+                const result = await dailyReportsModule.getReportById(reportId);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load report');
+                }
+                
+                const report = result.data;
+                
+                // Set original status
+                originalStatus = report.status;
+                
+                // Populate basic form fields
+                document.getElementById('report-number').value = report.report_number;
+                document.getElementById('report-date').value = report.report_date;
+                document.getElementById('author').value = report.author_id;
+                document.getElementById('status').value = report.status;
+                document.getElementById('weather-condition').value = report.weather_condition;
+                
+                if (report.temperature) {
+                    document.getElementById('temperature').value = report.temperature;
+                    document.getElementById('temperature-unit').value = report.temperature_unit || 'F';
+                }
+                
+                if (report.precipitation) {
+                    document.getElementById('precipitation').value = report.precipitation;
+                    document.getElementById('precipitation-unit').value = report.precipitation_unit || 'in';
+                }
+                
+                // Populate Quill editors
+                if (report.work_performed) {
+                    workPerformedQuill.root.innerHTML = report.work_performed;
+                    document.getElementById('work-performed').value = report.work_performed;
+                }
+                
+                if (report.delays_issues) {
+                    delaysIssuesQuill.root.innerHTML = report.delays_issues;
+                    document.getElementById('delays-issues').value = report.delays_issues;
+                }
+                
+                if (report.additional_notes) {
+                    additionalNotesQuill.root.innerHTML = report.additional_notes;
+                    document.getElementById('additional-notes').value = report.additional_notes;
+                }
+                
+                // Handle review fields for reviewed/rejected reports
+                if (report.status === 'reviewed' || report.status === 'rejected') {
+                    document.getElementById('review-section').classList.remove('d-none');
+                    document.getElementById('reviewer').value = report.reviewer_id || '';
+                    document.getElementById('review-date').value = report.review_date || '';
+                    
+                    if (report.review_comments) {
+                        reviewCommentsQuill.root.innerHTML = report.review_comments;
+                        document.getElementById('review-comments').value = report.review_comments;
+                    }
+                }
+                
+                // Load manpower items
+                if (report.manpower && report.manpower.length > 0) {
+                    manpowerItems = report.manpower;
+                    updateManpowerTable();
+                }
+                
+                // Load equipment items
+                if (report.equipment && report.equipment.length > 0) {
+                    equipmentItems = report.equipment;
+                    updateEquipmentTable();
+                }
+                
+                // Load material items
+                if (report.materials && report.materials.length > 0) {
+                    materialItems = report.materials;
+                    updateMaterialTable();
+                }
+                
+                // Load safety items
+                if (report.safety_incidents && report.safety_incidents.length > 0) {
+                    safetyItems = report.safety_incidents;
+                    updateSafetyTable();
+                }
+                
+                // Load visitor items
+                if (report.visitors && report.visitors.length > 0) {
+                    visitorItems = report.visitors;
+                    updateVisitorTable();
+                }
+                
+                // Load attachments
+                await loadAttachments();
+            } catch (error) {
+                console.error('Error loading report data:', error);
+                alert('Failed to load report data. Please try again.');
+            }
+        }
+        
+        async function loadAttachments() {
+            try {
+                if (!reportId) return;
+                
+                const { data, error } = await supabase
+                    .from('attachments')
+                    .select('*')
+                    .eq('module_table', 'daily_reports')
+                    .eq('record_id', reportId);
+                
+                if (error) throw error;
+                
+                existingAttachments = data || [];
+                
+                // Update attachments container
+                updateAttachmentsContainer();
+            } catch (error) {
+                console.error('Error loading attachments:', error);
+            }
+        }
+        
+        function setupEventListeners() {
+            // Form submission
+            document.getElementById('daily-report-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await saveReport();
+            });
+            
+            // File upload change
+            document.getElementById('file-upload').addEventListener('change', handleFileSelect);
+            
+            // Status change
+            document.getElementById('status').addEventListener('change', function(e) {
+                const newStatus = e.target.value;
+                
+                // Show/hide review section based on status
+                if (newStatus === 'reviewed' || newStatus === 'rejected') {
+                    document.getElementById('review-section').classList.remove('d-none');
+                    document.getElementById('reviewer').setAttribute('required', '');
+                    document.getElementById('review-date').setAttribute('required', '');
+                } else {
+                    document.getElementById('review-section').classList.add('d-none');
+                    document.getElementById('reviewer').removeAttribute('required');
+                    document.getElementById('review-date').removeAttribute('required');
+                }
+                
+                // If changing from draft/rejected to submitted, confirm with user
+                if ((originalStatus === 'draft' || originalStatus === 'rejected') && newStatus === 'submitted') {
+                    // Set message
+                    document.getElementById('status-confirm-message').textContent = 
+                        'Are you sure you want to submit this report? Once submitted, it will be visible to all project members.';
+                    
+                    // Show confirmation modal
+                    statusConfirmModal.show();
+                    
+                    // If user cancels, revert to original status
+                    document.getElementById('confirm-status-btn').onclick = function() {
+                        statusConfirmModal.hide();
+                        // Status change is confirmed, no action needed
+                    };
+                    
+                    document.getElementById('status-confirm-modal').addEventListener('hidden.bs.modal', function(event) {
+                        // If user clicks the X or clicks outside the modal, revert
+                        if (event.target.classList.contains('btn-close') || event.target === document.getElementById('status-confirm-modal')) {
+                            document.getElementById('status').value = originalStatus;
+                        }
+                    });
+                }
+            });
+            
+            // Add manpower button
+            document.getElementById('add-manpower-btn').addEventListener('click', function() {
+                // Reset form
+                document.getElementById('manpower-form').reset();
+                document.getElementById('manpower-id').value = '';
+                document.getElementById('manpowerModalLabel').textContent = 'Add Manpower';
+                
+                // Show modal
+                manpowerModal.show();
+            });
+            
+            // Save manpower button
+            document.getElementById('save-manpower-btn').addEventListener('click', function() {
+                const form = document.getElementById('manpower-form');
+                
+                // Manual validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                const itemId = document.getElementById('manpower-id').value;
+                const companySelect = document.getElementById('manpower-company');
+                const companyId = companySelect.value;
+                const companyName = companySelect.options[companySelect.selectedIndex].text;
+                const trade = document.getElementById('manpower-trade').value;
+                const workers = parseInt(document.getElementById('manpower-workers').value);
+                const hours = parseFloat(document.getElementById('manpower-hours').value);
+                
+                const manpowerItem = {
+                    company_id: companyId,
+                    company_name: companyName,
+                    trade: trade,
+                    workers: workers,
+                    hours: hours
+                };
+                
+                if (itemId) {
+                    // Edit existing item
+                    const index = manpowerItems.findIndex(item => item.temp_id === itemId);
+                    if (index !== -1) {
+                        manpowerItem.temp_id = itemId;
+                        manpowerItems[index] = manpowerItem;
+                    }
+                } else {
+                    // Add new item
+                    manpowerItem.temp_id = 'temp_' + Date.now();
+                    manpowerItems.push(manpowerItem);
+                }
+                
+                // Update table
+                updateManpowerTable();
+                
+                // Close modal
+                manpowerModal.hide();
+            });
+            
+            // Add equipment button
+            document.getElementById('add-equipment-btn').addEventListener('click', function() {
+                // Reset form
+                document.getElementById('equipment-form').reset();
+                document.getElementById('equipment-id').value = '';
+                document.getElementById('equipmentModalLabel').textContent = 'Add Equipment';
+                
+                // Show modal
+                equipmentModal.show();
+            });
+            
+            // Save equipment button
+            document.getElementById('save-equipment-btn').addEventListener('click', function() {
+                const form = document.getElementById('equipment-form');
+                
+                // Manual validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                const itemId = document.getElementById('equipment-id').value;
+                const equipmentType = document.getElementById('equipment-type').value;
+                const quantity = parseInt(document.getElementById('equipment-quantity').value);
+                const hours = parseFloat(document.getElementById('equipment-hours').value);
+                const notes = document.getElementById('equipment-notes').value;
+                
+                const equipmentItem = {
+                    equipment_type: equipmentType,
+                    quantity: quantity,
+                    hours: hours,
+                    notes: notes
+                };
+                
+                if (itemId) {
+                    // Edit existing item
+                    const index = equipmentItems.findIndex(item => item.temp_id === itemId);
+                    if (index !== -1) {
+                        equipmentItem.temp_id = itemId;
+                        equipmentItems[index] = equipmentItem;
+                    }
+                } else {
+                    // Add new item
+                    equipmentItem.temp_id = 'temp_' + Date.now();
+                    equipmentItems.push(equipmentItem);
+                }
+                
+                // Update table
+                updateEquipmentTable();
+                
+                // Close modal
+                equipmentModal.hide();
+            });
+            
+            // Add material button
+            document.getElementById('add-material-btn').addEventListener('click', function() {
+                // Reset form
+                document.getElementById('material-form').reset();
+                document.getElementById('material-id').value = '';
+                document.getElementById('materialModalLabel').textContent = 'Add Material';
+                
+                // Show modal
+                materialModal.show();
+            });
+            
+            // Save material button
+            document.getElementById('save-material-btn').addEventListener('click', function() {
+                const form = document.getElementById('material-form');
+                
+                // Manual validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                const itemId = document.getElementById('material-id').value;
+                const materialName = document.getElementById('material-name').value;
+                const quantity = parseFloat(document.getElementById('material-quantity').value);
+                const unitSelect = document.getElementById('material-unit');
+                const unit = unitSelect.value;
+                const unitLabel = unitSelect.options[unitSelect.selectedIndex].text;
+                const notes = document.getElementById('material-notes').value;
+                
+                const materialItem = {
+                    material_name: materialName,
+                    quantity: quantity,
+                    unit: unit,
+                    unit_label: unitLabel,
+                    notes: notes
+                };
+                
+                if (itemId) {
+                    // Edit existing item
+                    const index = materialItems.findIndex(item => item.temp_id === itemId);
+                    if (index !== -1) {
+                        materialItem.temp_id = itemId;
+                        materialItems[index] = materialItem;
+                    }
+                } else {
+                    // Add new item
+                    materialItem.temp_id = 'temp_' + Date.now();
+                    materialItems.push(materialItem);
+                }
+                
+                // Update table
+                updateMaterialTable();
+                
+                // Close modal
+                materialModal.hide();
+            });
+            
+            // Add safety incident button
+            document.getElementById('add-safety-btn').addEventListener('click', function() {
+                // Reset form
+                document.getElementById('safety-form').reset();
+                document.getElementById('safety-id').value = '';
+                document.getElementById('safetyModalLabel').textContent = 'Add Safety Incident';
+                
+                // Show modal
+                safetyModal.show();
+            });
+            
+            // Save safety incident button
+            document.getElementById('save-safety-btn').addEventListener('click', function() {
+                const form = document.getElementById('safety-form');
+                
+                // Manual validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                const itemId = document.getElementById('safety-id').value;
+                const typeSelect = document.getElementById('safety-type');
+                const incidentType = typeSelect.value;
+                const incidentTypeLabel = typeSelect.options[typeSelect.selectedIndex].text;
+                const description = document.getElementById('safety-description').value;
+                const actions = document.getElementById('safety-actions').value;
+                
+                const safetyItem = {
+                    incident_type: incidentType,
+                    incident_type_label: incidentTypeLabel,
+                    description: description,
+                    actions_taken: actions
+                };
+                
+                if (itemId) {
+                    // Edit existing item
+                    const index = safetyItems.findIndex(item => item.temp_id === itemId);
+                    if (index !== -1) {
+                        safetyItem.temp_id = itemId;
+                        safetyItems[index] = safetyItem;
+                    }
+                } else {
+                    // Add new item
+                    safetyItem.temp_id = 'temp_' + Date.now();
+                    safetyItems.push(safetyItem);
+                }
+                
+                // Update table
+                updateSafetyTable();
+                
+                // Close modal
+                safetyModal.hide();
+            });
+            
+            // Add visitor button
+            document.getElementById('add-visitor-btn').addEventListener('click', function() {
+                // Reset form
+                document.getElementById('visitor-form').reset();
+                document.getElementById('visitor-id').value = '';
+                document.getElementById('visitorModalLabel').textContent = 'Add Visitor';
+                
+                // Show modal
+                visitorModal.show();
+            });
+            
+            // Save visitor button
+            document.getElementById('save-visitor-btn').addEventListener('click', function() {
+                const form = document.getElementById('visitor-form');
+                
+                // Manual validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                const itemId = document.getElementById('visitor-id').value;
+                const visitorName = document.getElementById('visitor-name').value;
+                const company = document.getElementById('visitor-company').value;
+                const purpose = document.getElementById('visitor-purpose').value;
+                
+                const visitorItem = {
+                    visitor_name: visitorName,
+                    company: company,
+                    purpose: purpose
+                };
+                
+                if (itemId) {
+                    // Edit existing item
+                    const index = visitorItems.findIndex(item => item.temp_id === itemId);
+                    if (index !== -1) {
+                        visitorItem.temp_id = itemId;
+                        visitorItems[index] = visitorItem;
+                    }
+                } else {
+                    // Add new item
+                    visitorItem.temp_id = 'temp_' + Date.now();
+                    visitorItems.push(visitorItem);
+                }
+                
+                // Update table
+                updateVisitorTable();
+                
+                // Close modal
+                visitorModal.hide();
+            });
+        }
+        
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            // Preview files
+            selectedFiles = Array.from(files);
+            
+            const attachmentsPreview = document.getElementById('attachments-preview');
+            const attachmentsList = document.getElementById('attachments-list');
+            let html = '';
+            
+            selectedFiles.forEach(file => {
+                html += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-file-earmark me-2"></i>
+                            ${file.name}
+                            <small class="text-muted ms-2">${formatFileSize(file.size)}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-danger remove-file" data-filename="${file.name}">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </li>
+                `;
+            });
+            
+            attachmentsList.innerHTML = html;
+            attachmentsPreview.classList.remove('d-none');
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-file').forEach(button => {
+                button.addEventListener('click', function() {
+                    const filename = this.getAttribute('data-filename');
+                    selectedFiles = selectedFiles.filter(file => file.name !== filename);
+                    
+                    if (selectedFiles.length === 0) {
+                        attachmentsPreview.classList.add('d-none');
+                    } else {
+                        handleFileSelect({ target: { files: selectedFiles } });
+                    }
+                });
+            });
+        }
+        
+        function updateManpowerTable() {
+            const tbody = document.getElementById('manpower-rows');
+            
+            if (manpowerItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="manpower-empty-row">
+                        <td colspan="5" class="text-center">No manpower records added</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            manpowerItems.forEach(item => {
+                html += `
+                    <tr data-id="${item.temp_id}">
+                        <td>${item.company_name}</td>
+                        <td>${item.trade}</td>
+                        <td>${item.workers}</td>
+                        <td>${item.hours}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary edit-manpower" data-id="${item.temp_id}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger delete-manpower" data-id="${item.temp_id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+            
+            // Add event listeners
+            document.querySelectorAll('.edit-manpower').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-id');
+                    const item = manpowerItems.find(item => item.temp_id === itemId);
+                    
+                    if (item) {
+                        document.getElementById('manpower-id').value = itemId;
+                        document.getElementById('manpower-company').value = item.company_id;
+                        document.getElementById('manpower-trade').value = item.trade;
+                        document.getElementById('manpower-workers').value = item.workers;
+                        document.getElementById('manpower-hours').value = item.hours;
+                        
+                        document.getElementById('manpowerModalLabel').textContent = 'Edit Manpower';
+                        manpowerModal.show();
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.delete-manpower').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this manpower record?')) {
+                        const itemId = this.getAttribute('data-id');
+                        manpowerItems = manpowerItems.filter(item => item.temp_id !== itemId);
+                        updateManpowerTable();
+                    }
+                });
+            });
+        }
+        
+        function updateEquipmentTable() {
+            const tbody = document.getElementById('equipment-rows');
+            
+            if (equipmentItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="equipment-empty-row">
+                        <td colspan="5" class="text-center">No equipment records added</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            equipmentItems.forEach(item => {
+                html += `
+                    <tr data-id="${item.temp_id}">
+                        <td>${item.equipment_type}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.hours}</td>
+                        <td>${item.notes || ''}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary edit-equipment" data-id="${item.temp_id}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class<!-- filepath: c:\Users\iphoe\OneDrive\Documents\Server\cm-dashboard\cm-dashboard\modules\field\daily-reports\form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create/Edit Daily Report - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../assets/css/custom.css">
+    <link rel="stylesheet" href="../../../assets/css/components/sidebar.css">
+    <!-- Include Quill editor CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet">
+    <script src="../../../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../../../assets/js/core/auth.js" defer></script>
+    <script src="../../../assets/js/core/permissions.js" defer></script>
+    <script src="../../../assets/js/core/supabase-client.js" defer></script>
+    <!-- Include Quill editor JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/purify-es@1.0.1/dist/purify-es.min.js"></script>
+    <script src="daily-reports.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h1 class="h3" id="form-title">Create Daily Report</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../../../pages/dashboard.html">Dashboard</a></li>
+                                <li class="breadcrumb-item">Field</li>
+                                <li class="breadcrumb-item"><a href="list.html">Daily Reports</a></li>
+                                <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-action">Create</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                
+                <form id="daily-report-form">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Report Details</h5>
+                                    <div id="status-select-container">
+                                        <select class="form-select form-select-sm" id="status" name="status">
+                                            <option value="draft">Draft</option>
+                                            <option value="submitted">Submit</option>
+                                            <option value="reviewed" class="permission-review">Review</option>
+                                            <option value="rejected" class="permission-review">Reject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="report-number" class="form-label">Report Number</label>
+                                            <input type="text" class="form-control" id="report-number" name="report_number" placeholder="Auto-generated if blank" readonly>
+                                            <div class="form-text">Report number will be generated automatically</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="report-date" class="form-label">Report Date *</label>
+                                            <input type="date" class="form-control" id="report-date" name="report_date" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="author" class="form-label">Author *</label>
+                                            <select class="form-select" id="author" name="author_id" required>
+                                                <option value="">Select Author</option>
+                                                <!-- Options will be loaded dynamically -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="weather-condition" class="form-label">Weather Condition *</label>
+                                            <select class="form-select" id="weather-condition" name="weather_condition" required>
+                                                <option value="">Select Weather</option>
+                                                <option value="sunny">Sunny</option>
+                                                <option value="partly_cloudy">Partly Cloudy</option>
+                                                <option value="cloudy">Cloudy</option>
+                                                <option value="rain">Rain</option>
+                                                <option value="snow">Snow</option>
+                                                <option value="fog">Fog</option>
+                                                <option value="wind">Windy</option>
+                                                <option value="storm">Storm</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="temperature" class="form-label">Temperature</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="temperature" name="temperature" placeholder="e.g., 72">
+                                                <select class="form-select" id="temperature-unit" name="temperature_unit" style="max-width: 80px;">
+                                                    <option value="F">°F</option>
+                                                    <option value="C">°C</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="precipitation" class="form-label">Precipitation</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" class="form-control" id="precipitation" name="precipitation" placeholder="e.g., 0.5">
+                                                <select class="form-select" id="precipitation-unit" name="precipitation_unit" style="max-width: 80px;">
+                                                    <option value="in">in</option>
+                                                    <option value="mm">mm</option>
+                                                    <option value="cm">cm</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="work-performed" class="form-label">Work Performed *</label>
+                                        <div id="work-performed-editor" class="form-control quill-editor" style="height: 200px;"></div>
+                                        <input type="hidden" id="work-performed" name="work_performed">
+                                        <div class="invalid-feedback" id="work-performed-feedback"></div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Manpower</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="manpower-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Company</th>
+                                                        <th>Trade</th>
+                                                        <th>Workers</th>
+                                                        <th>Hours</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="manpower-rows">
+                                                    <tr id="manpower-empty-row">
+                                                        <td colspan="5" class="text-center">No manpower records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-manpower-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Manpower
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Equipment</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="equipment-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Equipment Type</th>
+                                                        <th>Quantity</th>
+                                                        <th>Hours Used</th>
+                                                        <th>Notes</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="equipment-rows">
+                                                    <tr id="equipment-empty-row">
+                                                        <td colspan="5" class="text-center">No equipment records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-equipment-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Equipment
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Materials</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="material-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Material</th>
+                                                        <th>Quantity</th>
+                                                        <th>Unit</th>
+                                                        <th>Notes</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="material-rows">
+                                                    <tr id="material-empty-row">
+                                                        <td colspan="5" class="text-center">No material records added</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-material-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Material
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="delays-issues" class="form-label">Delays or Issues</label>
+                                        <div id="delays-issues-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                        <input type="hidden" id="delays-issues" name="delays_issues">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Safety Incidents</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="safety-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Incident Type</th>
+                                                        <th>Description</th>
+                                                        <th>Actions Taken</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="safety-rows">
+                                                    <tr id="safety-empty-row">
+                                                        <td colspan="4" class="text-center">No safety incidents reported</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-safety-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Safety Incident
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">Site Visitors</h6>
+                                        <div class="table-responsive mb-2">
+                                            <table class="table table-sm table-bordered" id="visitor-table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Visitor Name</th>
+                                                        <th>Company</th>
+                                                        <th>Purpose</th>
+                                                        <th style="width: 50px;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="visitor-rows">
+                                                    <tr id="visitor-empty-row">
+                                                        <td colspan="4" class="text-center">No visitors recorded</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="add-visitor-btn">
+                                            <i class="bi bi-plus-circle me-1"></i> Add Visitor
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="additional-notes" class="form-label">Additional Notes</label>
+                                        <div id="additional-notes-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                        <input type="hidden" id="additional-notes" name="additional_notes">
+                                    </div>
+                                    
+                                    <!-- Review Section - Only shown for reviewed/rejected reports -->
+                                    <div id="review-section" class="mb-4 d-none">
+                                        <hr>
+                                        <h6 class="mb-3">Review Information</h6>
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="reviewer" class="form-label">Reviewer *</label>
+                                                <select class="form-select" id="reviewer" name="reviewer_id">
+                                                    <option value="">Select Reviewer</option>
+                                                    <!-- Options will be loaded dynamically -->
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="review-date" class="form-label">Review Date *</label>
+                                                <input type="date" class="form-control" id="review-date" name="review_date">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="review-comments" class="form-label">Review Comments *</label>
+                                            <div id="review-comments-editor" class="form-control quill-editor" style="height: 150px;"></div>
+                                            <input type="hidden" id="review-comments" name="review_comments">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">Attachments</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="file-upload" class="form-label">Upload Files</label>
+                                        <input class="form-control" type="file" id="file-upload" multiple>
+                                        <div class="form-text">Upload photos, documents, or other files related to this report.</div>
+                                    </div>
+                                    <div id="attachments-preview" class="d-none mb-3">
+                                        <h6 class="text-muted mb-2">Files to upload:</h6>
+                                        <ul class="list-group list-group-flush" id="attachments-list">
+                                            <!-- Preview of attachments will be added here -->
+                                        </ul>
+                                    </div>
+                                    <div id="existing-attachments">
+                                        <h6 class="text-muted mb-2">Existing attachments:</h6>
+                                        <div id="attachments-container">
+                                            <div class="text-center py-3 text-muted">
+                                                <i class="bi bi-file-earmark"></i>
+                                                <p class="mb-0">No attachments</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0">Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="save-btn">
+                                            <i class="bi bi-save me-1"></i> Save Report
+                                        </button>
+                                        <a href="list.html" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <!-- Manpower Modal -->
+    <div class="modal fade" id="manpower-modal" tabindex="-1" aria-labelledby="manpowerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manpowerModalLabel">Add Manpower</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="manpower-form">
+                        <input type="hidden" id="manpower-id">
+                        <div class="mb-3">
+                            <label for="manpower-…

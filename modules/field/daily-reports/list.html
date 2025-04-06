@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Reports - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../assets/css/custom.css">
+    <link rel="stylesheet" href="../../../assets/css/components/sidebar.css">
+    <script src="../../../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../../../assets/js/core/auth.js" defer></script>
+    <script src="../../../assets/js/core/permissions.js" defer></script>
+    <script src="../../../assets/js/core/supabase-client.js" defer></script>
+    <script src="../../../assets/js/utils/export-pdf.js" defer></script>
+    <script src="daily-reports.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h1 class="h3">Daily Reports</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../../../pages/dashboard.html">Dashboard</a></li>
+                                <li class="breadcrumb-item">Field</li>
+                                <li class="breadcrumb-item active" aria-current="page">Daily Reports</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button id="export-pdf" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-file-pdf me-1"></i> Export PDF
+                        </button>
+                        <a href="form.html" class="btn btn-primary permission-create">
+                            <i class="bi bi-plus-circle me-1"></i> Create Daily Report
+                        </a>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" id="refresh-btn"><i class="bi bi-arrow-clockwise me-2"></i>Refresh</a></li>
+                                <li><a class="dropdown-item" href="#" id="columns-btn"><i class="bi bi-columns-gap me-2"></i>Columns</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" id="help-btn"><i class="bi bi-question-circle me-2"></i>Help</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="search-input" placeholder="Search daily reports...">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Filters
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end p-3" style="width: 300px;">
+                                        <li>
+                                            <h6 class="dropdown-header">Filter By Status</h6>
+                                            <div class="form-check">
+                                                <input class="form-check-input filter-status" type="checkbox" value="draft" id="status-draft" checked>
+                                                <label class="form-check-label" for="status-draft">
+                                                    Draft
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input filter-status" type="checkbox" value="submitted" id="status-submitted" checked>
+                                                <label class="form-check-label" for="status-submitted">
+                                                    Submitted
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input filter-status" type="checkbox" value="reviewed" id="status-reviewed" checked>
+                                                <label class="form-check-label" for="status-reviewed">
+                                                    Reviewed
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input filter-status" type="checkbox" value="rejected" id="status-rejected" checked>
+                                                <label class="form-check-label" for="status-rejected">
+                                                    Rejected
+                                                </label>
+                                            </div>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <h6 class="dropdown-header">Date Range</h6>
+                                            <div class="mb-2">
+                                                <label for="date-from" class="form-label small">From:</label>
+                                                <input type="date" class="form-control form-control-sm" id="date-from">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label for="date-to" class="form-label small">To:</label>
+                                                <input type="date" class="form-control form-control-sm" id="date-to">
+                                            </div>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-filters-btn">Clear</button>
+                                            <button type="button" class="btn btn-sm btn-primary" id="apply-filters-btn">Apply Filters</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                <select class="form-select form-select-sm d-inline-block w-auto" id="page-size-select">
+                                    <option value="10">10 per page</option>
+                                    <option value="25">25 per page</option>
+                                    <option value="50">50 per page</option>
+                                    <option value="100">100 per page</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="sortable" data-field="report_number">Report #</th>
+                                    <th scope="col" class="sortable" data-field="report_date">Date</th>
+                                    <th scope="col" class="sortable" data-field="author_id">Author</th>
+                                    <th scope="col" class="sortable" data-field="weather_condition">Weather</th>
+                                    <th scope="col" class="sortable" data-field="status">Status</th>
+                                    <th scope="col" class="sortable" data-field="created_at">Created</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                        <span class="ms-2">Loading daily reports...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 small text-muted" id="pagination-info">
+                                Showing 0 of 0 daily reports
+                            </div>
+                            <div class="col-md-6">
+                                <nav aria-label="Daily reports pagination">
+                                    <ul class="pagination pagination-sm justify-content-md-end mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                        </li>
+                                        <li class="page-item active" aria-current="page">
+                                            <a class="page-link" href="#">1</a>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Reports Alert -->
+                <div class="alert alert-info mt-4 d-none" id="no-reports-alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No daily reports found for the current project. Click on "Create Daily Report" to add a new one.
+                </div>
+                
+                <!-- Columns Selection Modal -->
+                <div class="modal fade" id="columns-modal" tabindex="-1" aria-labelledby="columnsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="columnsModalLabel">Show/Hide Columns</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="report_number" id="col-report-number" checked>
+                                    <label class="form-check-label" for="col-report-number">
+                                        Report #
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="report_date" id="col-report-date" checked>
+                                    <label class="form-check-label" for="col-report-date">
+                                        Date
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="author_id" id="col-author" checked>
+                                    <label class="form-check-label" for="col-author">
+                                        Author
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="weather_condition" id="col-weather" checked>
+                                    <label class="form-check-label" for="col-weather">
+                                        Weather
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="status" id="col-status" checked>
+                                    <label class="form-check-label" for="col-status">
+                                        Status
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="created_at" id="col-created" checked>
+                                    <label class="form-check-label" for="col-created">
+                                        Created
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="temperature" id="col-temperature">
+                                    <label class="form-check-label" for="col-temperature">
+                                        Temperature
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input column-toggle" type="checkbox" value="precipitation" id="col-precipitation">
+                                    <label class="form-check-label" for="col-precipitation">
+                                        Precipitation
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" id="apply-columns-btn">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help Modal -->
+                <div class="modal fade" id="help-modal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="helpModalLabel">Daily Reports Help</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>About Daily Reports</h6>
+                                <p>
+                                    Daily reports document the day-to-day activities, progress, and conditions on the construction site. They serve as an official record of work performed, labor, equipment, materials, weather conditions, and any issues encountered.
+                                </p>
+                                
+                                <h6>Working with Daily Reports</h6>
+                                <ul>
+                                    <li><strong>Create:</strong> Click the "Create Daily Report" button to add a new report</li>
+                                    <li><strong>View:</strong> Click on any report row to view its details</li>
+                                    <li><strong>Edit:</strong> Use the edit icon in the Actions column</li>
+                                    <li><strong>Delete:</strong> Use the delete icon in the Actions column (administrators only)</li>
+                                </ul>
+                                
+                                <h6>Report Status Meanings</h6>
+                                <ul>
+                                    <li><strong>Draft:</strong> Report is in progress and not yet submitted</li>
+                                    <li><strong>Submitted:</strong> Report has been submitted for review</li>
+                                    <li><strong>Reviewed:</strong> Report has been reviewed and approved</li>
+                                    <li><strong>Rejected:</strong> Report has been reviewed and rejected</li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables for managing state
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalReports = 0;
+        let reports = [];
+        let sortField = 'report_date';
+        let sortDirection = 'desc';
+        let searchQuery = '';
+        let statusFilters = ['draft', 'submitted', 'reviewed', 'rejected'];
+        let dateFrom = null;
+        let dateTo = null;
+        let visibleColumns = ['report_number', 'report_date', 'author_id', 'weather_condition', 'status', 'created_at'];
+        let projectId = null;
+        
+        // Modals
+        let columnsModal = null;
+        let helpModal = null;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Check authentication
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) {
+                    window.location.href = '../../../pages/auth/login.html';
+                    return;
+                }
+                
+                // Get project ID from local storage
+                projectId = localStorage.getItem('cm_current_project_id');
+                if (!projectId) {
+                    alert('No project selected');
+                    window.location.href = '../../../pages/dashboard.html';
+                    return;
+                }
+                
+                // Load components
+                await loadComponents();
+                
+                // Initialize modals
+                columnsModal = new bootstrap.Modal(document.getElementById('columns-modal'));
+                helpModal = new bootstrap.Modal(document.getElementById('help-modal'));
+                
+                // Get page size from select
+                pageSize = parseInt(document.getElementById('page-size-select').value);
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Apply permissions
+                permissionsManager.applyPermissions();
+                
+                // Load reports
+                await loadReports();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                alert('An error occurred while loading the page. Please try refreshing.');
+            }
+        });
+        
+        async function loadComponents() {
+            try {
+                const headerContainer = document.getElementById('header-container');
+                const sidebarContainer = document.getElementById('sidebar-container');
+                const footerContainer = document.getElementById('footer-container');
+                
+                const headerResponse = await fetch('../../../components/layout/header.html');
+                const sidebarResponse = await fetch('../../../components/layout/sidebar.html');
+                const footerResponse = await fetch('../../../components/layout/footer.html');
+                
+                headerContainer.innerHTML = await headerResponse.text();
+                sidebarContainer.innerHTML = await sidebarResponse.text();
+                footerContainer.innerHTML = await footerResponse.text();
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+        
+        function setupEventListeners() {
+            // Search input
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchQuery = this.value.trim();
+                    currentPage = 1;
+                    loadReports();
+                }
+            });
+            
+            // Page size select
+            document.getElementById('page-size-select').addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1;
+                loadReports();
+            });
+            
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                loadReports();
+            });
+            
+            // Columns button
+            document.getElementById('columns-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                columnsModal.show();
+            });
+            
+            // Help button
+            document.getElementById('help-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                helpModal.show();
+            });
+            
+            // Apply columns button
+            document.getElementById('apply-columns-btn').addEventListener('click', function() {
+                visibleColumns = [];
+                document.querySelectorAll('.column-toggle:checked').forEach(checkbox => {
+                    visibleColumns.push(checkbox.value);
+                });
+                
+                updateColumnVisibility();
+                columnsModal.hide();
+            });
+            
+            // Status filter checkboxes
+            document.querySelectorAll('.filter-status').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    statusFilters = Array.from(document.querySelectorAll('.filter-status:checked')).map(cb => cb.value);
+                });
+            });
+            
+            // Apply filters button
+            document.getElementById('apply-filters-btn').addEventListener('click', function() {
+                dateFrom = document.getElementById('date-from').value || null;
+                dateTo = document.getElementById('date-to').value || null;
+                currentPage = 1;
+                loadReports();
+            });
+            
+            // Clear filters button
+            document.getElementById('clear-filters-btn').addEventListener('click', function() {
+                // Reset status checkboxes
+                document.querySelectorAll('.filter-status').forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                statusFilters = ['draft', 'submitted', 'reviewed', 'rejected'];
+                
+                // Reset date fields
+                document.getElementById('date-from').value = '';
+                document.getElementById('date-to').value = '';
+                dateFrom = null;
+                dateTo = null;
+                
+                // Reset search
+                document.getElementById('search-input').value = '';
+                searchQuery = '';
+                
+                currentPage = 1;
+                loadReports();
+            });
+            
+            // Export PDF button
+            document.getElementById('export-pdf').addEventListener('click', function() {
+                exportReportsToPdf();
+            });
+            
+            // Sort headers
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', function() {
+                    const field = this.getAttribute('data-field');
+                    
+                    // Toggle sort direction if clicking on the same field
+                    if (field === sortField) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortField = field;
+                        sortDirection = 'asc';
+                    }
+                    
+                    // Update sort indicators
+                    document.querySelectorAll('th.sortable').forEach(header => {
+                        header.classList.remove('sorted-asc', 'sorted-desc');
+                    });
+                    
+                    this.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                    
+                    // Reload data with new sort
+                    loadReports();
+                });
+            });
+            
+            // Pagination
+            document.querySelector('.pagination').addEventListener('click', function(e) {
+                const pageLink = e.target.closest('.page-link');
+                if (pageLink && !pageLink.parentNode.classList.contains('disabled')) {
+                    e.preventDefault();
+                    
+                    if (pageLink.textContent === 'Previous') {
+                        currentPage--;
+                    } else if (pageLink.textContent === 'Next') {
+                        currentPage++;
+                    } else {
+                        currentPage = parseInt(pageLink.textContent);
+                    }
+                    
+                    loadReports();
+                }
+            });
+        }
+        
+        async function loadReports() {
+            try {
+                const tableBody = document.getElementById('reports-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2">Loading daily reports...</span>
+                        </td>
+                    </tr>
+                `;
+                
+                // Prepare filters
+                const filters = {
+                    project_id: projectId
+                };
+                
+                // Add status filters
+                if (statusFilters.length > 0 && statusFilters.length < 4) {
+                    filters.status = statusFilters;
+                }
+                
+                // Prepare query options
+                const options = {
+                    page: currentPage,
+                    pageSize: pageSize,
+                    filters: filters,
+                    orderBy: sortField,
+                    ascending: sortDirection === 'asc'
+                };
+                
+                // Select authors as well
+                const columns = `
+                    *,
+                    author:author_id(id, first_name, last_name),
+                    creator:created_by(id, first_name, last_name)
+                `;
+                
+                // Add date filters if set
+                let query = supabase
+                    .from('daily_reports')
+                    .select(columns, { count: 'exact' });
+                
+                // Apply all filters
+                for (const [key, value] of Object.entries(filters)) {
+                    if (Array.isArray(value)) {
+                        query = query.in(key, value);
+                    } else {
+                        query = query.eq(key, value);
+                    }
+                }
+                
+                // Apply date filters if set
+                if (dateFrom) {
+                    query = query.gte('report_date', dateFrom);
+                }
+                
+                if (dateTo) {
+                    query = query.lte('report_date', dateTo);
+                }
+                
+                // Apply search if set
+                if (searchQuery) {
+                    query = query.or(`report_number.ilike.%${searchQuery}%,work_performed.ilike.%${searchQuery}%`);
+                }
+                
+                // Apply sorting
+                query = query.order(sortField, { ascending: sortDirection === 'asc' });
+                
+                // Apply pagination
+                const from = (currentPage - 1) * pageSize;
+                const to = from + pageSize - 1;
+                query = query.range(from, to);
+                
+                // Execute query
+                const { data, error, count } = await query;
+                
+                if (error) throw error;
+                
+                // Store total count and reports
+                totalReports = count || 0;
+                reports = data || [];
+                
+                // Update UI
+                updateTable();
+                updatePagination();
+                
+                // Show/hide no reports alert
+                const noReportsAlert = document.getElementById('no-reports-alert');
+                if (totalReports === 0) {
+                    noReportsAlert.classList.remove('d-none');
+                } else {
+                    noReportsAlert.classList.add('d-none');
+                }
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                document.getElementById('reports-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error loading daily reports. Please try refreshing the page.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        function updateTable() {
+            const tableBody = document.getElementById('reports-table-body');
+            
+            if (reports.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            No daily reports found matching your criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            reports.forEach(report => {
+                const statusBadge = dailyReportsModule.getStatusBadgeHtml(report.status);
+                const weatherHtml = report.weather_condition ? 
+                    dailyReportsModule.getWeatherHtml(report.weather_condition) : '—';
+                
+                html += `
+                    <tr data-id="${report.id}">
+                        <td><a href="view.html?id=${report.id}">${report.report_number || '—'}</a></td>
+                        <td>${dailyReportsModule.formatDate(report.report_date)}</td>
+                        <td>${report.author?.first_name} ${report.author?.last_name || '—'}</td>
+                        <td>${weatherHtml}</td>
+                        <td>${statusBadge}</td>
+                        <td>${dailyReportsModule.formatDate(report.created_at, true)}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="view.html?id=${report.id}" class="btn btn-outline-secondary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="form.html?id=${report.id}" class="btn btn-outline-secondary permission-update" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger permission-delete" title="Delete" onclick="confirmDelete(${report.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+            
+            // Update pagination info
+            const from = (currentPage - 1) * pageSize + 1;
+            const to = Math.min(from + reports.length - 1, totalReports);
+            document.getElementById('pagination-info').textContent = `Showing ${from}-${to} of ${totalReports} daily reports`;
+            
+            // Apply permissions to newly added elements
+            permissionsManager.applyPermissions();
+            
+            // Update column visibility based on settings
+            updateColumnVisibility();
+        }
+        
+        function updateColumnVisibility() {
+            const table = document.querySelector('table');
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
+            
+            // Get indexes of all columns (excluding Actions column)
+            const columnIndexes = Array.from(headers).slice(0, -1).map((th, index) => {
+                const field = th.getAttribute('data-field');
+                return { index, field, visible: visibleColumns.includes(field) };
+            });
+            
+            // Hide/show table headers
+            columnIndexes.forEach(col => {
+                if (col.visible) {
+                    headers[col.index].classList.remove('d-none');
+                } else {
+                    headers[col.index].classList.add('d-none');
+                }
+            });
+            
+            // Hide/show table cells in each row
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                
+                columnIndexes.forEach(col => {
+                    if (cells.length > col.index) {
+                        if (col.visible) {
+                            cells[col.index].classList.remove('d-none');
+                        } else {
+                            cells[col.index].classList.add('d-none');
+                        }
+                    }
+                });
+            });
+        }
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(totalReports / pageSize);
+            const pagination = document.querySelector('.pagination');
+            
+            // Clear all but the Previous and Next links
+            const prevLink = pagination.querySelector('li:first-child');
+            const nextLink = pagination.querySelector('li:last-child');
+            pagination.innerHTML = '';
+            pagination.appendChild(prevLink);
+            
+            // Create page links
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.classList.add('page-item');
+                if (i === currentPage) {
+                    li.classList.add('active');
+                    li.setAttribute('aria-current', 'page');
+                }
+                
+                const a = document.createElement('a');
+                a.classList.add('page-link');
+                a.href = '#';
+                a.textContent = i;
+                
+                li.appendChild(a);
+                pagination.appendChild(li);
+            }
+            
+            pagination.appendChild(nextLink);
+            
+            // Update Previous button state
+            if (currentPage === 1) {
+                prevLink.classList.add('disabled');
+                prevLink.setAttribute('aria-disabled', 'true');
+            } else {
+                prevLink.classList.remove('disabled');
+                prevLink.removeAttribute('aria-disabled');
+            }
+            
+            // Update Next button state
+            if (currentPage === totalPages || totalPages === 0) {
+                nextLink.classList.add('disabled');
+                nextLink.setAttribute('aria-disabled', 'true');
+            } else {
+                nextLink.classList.remove('disabled');
+                nextLink.removeAttribute('aria-disabled');
+            }
+        }
+        
+        async function confirmDelete(id) {
+            if (confirm('Are you sure you want to delete this daily report? This action cannot be undone.')) {
+                try {
+                    const result = await dailyReportsModule.deleteDailyReport(id);
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to delete daily report');
+                    }
+                    
+                    alert('Daily report deleted successfully');
+                    loadReports();
+                } catch (error) {
+                    console.error('Error deleting daily report:', error);
+                    alert('Failed to delete daily report. Please try again.');
+                }
+            }
+        }
+        
+        async function exportReportsToPdf() {
+            try {
+                // Get current project name
+                const { data: project, error: projectError } = await supabase
+                    .from('projects')
+                    .select('name')
+                    .eq('id', projectId)
+                    .single();
+                
+                if (projectError) throw projectError;
+                
+                // Prepare data for PDF
+                const title = `Daily Reports - ${project.name}`;
+                
+                // Create table columns
+                const tableColumns = [
+                    { header: 'Report #', dataKey: 'report_number' },
+                    { header: 'Date', dataKey: 'report_date' },
+                    { header: 'Author', dataKey: 'author' },
+                    { header: 'Weather', dataKey: 'weather' },
+                    { header: 'Status', dataKey: 'status' },
+                    { header: 'Created', dataKey: 'created_at' }
+                ];
+                
+                // Fetch all reports for export (with current filters but no pagination)
+                const filters = {
+                    project_id: projectId
+                };
+                
+                if (statusFilters.length > 0 && statusFilters.length < 4) {
+                    filters.status = statusFilters;
+                }
+                
+                let query = supabase
+                    .from('daily_reports')
+                    .select(`
+                        *,
+                        author:author_id(first_name, last_name)
+                    `);
+                
+                for (const [key, value] of Object.entries(filters)) {
+                    if (Array.isArray(value)) {
+                        query = query.in(key, value);
+                    } else {
+                        query = query.eq(key, value);
+                    }
+                }
+                
+                if (dateFrom) {
+                    query = query.gte('report_date', dateFrom);
+                }
+                
+                if (dateTo) {
+                    query = query.lte('report_date', dateTo);
+                }
+                
+                if (searchQuery) {
+                    query = query.or(`report_number.ilike.%${searchQuery}%,work_performed.ilike.%${searchQuery}%`);
+                }
+                
+                query = query.order(sortField, { ascending: sortDirection === 'asc' });
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                // Format data for PDF
+                const tableData = data.map(report => {
+                    // Find weather condition label
+                    const weatherCondition = dailyReportsModule.WEATHER_CONDITIONS.find(w => w.value === report.weather_condition);
+                    const weatherLabel = weatherCondition ? weatherCondition.label : report.weather_condition;
+                    
+                    return {
+                        report_number: report.report_number || '—',
+                        report_date: dailyReportsModule.formatDate(report.report_date),
+                        author: report.author ? `${report.author.first_name} ${report.author.last_name}` : '—',
+                        weather: weatherLabel || '—',
+                        status: dailyReportsModule.formatStatus(report.status),
+                        created_at: dailyReportsModule.formatDate(report.created_at, true)
+                    };
+                });
+                
+                // Get current filter description
+                let filterDescription = '';
+                if (statusFilters.length > 0 && statusFilters.length < 4) {
+                    filterDescription += `Status: ${statusFilters.map(s => dailyReportsModule.formatStatus(s)).join(', ')}`;
+                }
+                
+                if (dateFrom || dateTo) {
+                    if (filterDescription) filterDescription += ' | ';
+                    filterDescription += 'Date: ';
+                    if (dateFrom) filterDescription += `From ${dateFrom} `;
+                    if (dateTo) filterDescription += `To ${dateTo}`;
+                }
+                
+                if (searchQuery) {
+                    if (filterDescription) filterDescription += ' | ';
+                    filterDescription += `Search: "${searchQuery}"`;
+                }
+                
+                // Call the exportToPdf utility
+                await exportToPdf({
+                    title,
+                    subtitle: filterDescription || 'All Daily Reports',
+                    tableColumns,
+                    tableData,
+                    fileName: `daily-reports-${project.name.toLowerCase().replace(/\s+/g, '-')}`
+                });
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+                alert('Failed to export to PDF. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

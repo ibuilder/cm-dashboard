@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Submittal - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../assets/css/custom.css">
+    <link rel="stylesheet" href="../../../assets/css/components/sidebar.css">
+    <script src="../../../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../../../assets/js/core/auth.js" defer></script>
+    <script src="../../../assets/js/core/permissions.js" defer></script>
+    <script src="../../../assets/js/core/supabase-client.js" defer></script>
+    <script src="../../../assets/js/utils/export-pdf.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h1 class="h3">View Submittal</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../../../pages/dashboard.html">Dashboard</a></li>
+                                <li class="breadcrumb-item">Engineering</li>
+                                <li class="breadcrumb-item"><a href="list.html">Submittals</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">View Submittal</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button id="export-pdf" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-file-pdf me-1"></i> Export PDF
+                        </button>
+                        <a id="edit-button" href="#" class="btn btn-primary permission-update me-2">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </a>
+                        <button id="delete-button" class="btn btn-danger permission-delete">
+                            <i class="bi bi-trash me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Submittal Details</h5>
+                                <span id="status-badge" class="badge bg-primary">Submitted</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Submittal Number</div>
+                                    <div class="col-md-9 fw-medium" id="submittal-number"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Title</div>
+                                    <div class="col-md-9" id="title"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Spec Section</div>
+                                    <div class="col-md-9" id="spec-section"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Drawing Reference</div>
+                                    <div class="col-md-9" id="drawing-reference"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">From</div>
+                                    <div class="col-md-9" id="from-company"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">To</div>
+                                    <div class="col-md-9" id="to-company"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Date Created</div>
+                                    <div class="col-md-9" id="date-created"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 text-muted">Due Date</div>
+                                    <div class="col-md-9" id="due-date"></div>
+                                </div>
+                                <hr>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="text-muted mb-2">Description</div>
+                                        <div id="description" class="border rounded p-3 bg-light"></div>
+                                    </div>
+                                </div>
+                                <div id="review-container" class="d-none">
+                                    <hr>
+                                    <h6 class="mb-3">Review Information</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-3 text-muted">Reviewer</div>
+                                        <div class="col-md-9" id="reviewer"></div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-3 text-muted">Review Date</div>
+                                        <div class="col-md-9" id="review-date"></div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-12">
+                                            <div class="text-muted mb-2">Review Comments</div>
+                                            <div id="review-comments" class="border rounded p-3 bg-light"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Attachments -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Attachments</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="attachments-container">
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="bi bi-file-earmark-text fs-2"></i>
+                                        <p>No attachments found</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Activity Log -->
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Activity Log</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="activity-log" class="list-group list-group-flush">
+                                    <div class="list-group-item text-center">
+                                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                                        <span class="ms-2">Loading activity...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comments -->
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Comments</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="comments-container">
+                                    <!-- Comments will be loaded here -->
+                                    <div class="text-center py-3">
+                                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                                        <span class="ms-2">Loading comments...</span>
+                                    </div>
+                                </div>
+                                <form id="comment-form" class="mt-3">
+                                    <div class="form-group">
+                                        <textarea id="comment-text" class="form-control" rows="3" placeholder="Write a comment..."></textarea>
+                                    </div>
+                                    <div class="mt-2 text-end">
+                                        <button type="submit" class="btn btn-primary" id="post-comment">
+                                            <i class="bi bi-chat-text me-1"></i> Post Comment
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="delete-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this submittal? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let submittalId;
+        let submittalData;
+        let deleteModal;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Check authentication
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) {
+                    window.location.href = '../../../pages/auth/login.html';
+                    return;
+                }
+                
+                // Get submittal ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                submittalId = urlParams.get('id');
+                
+                if (!submittalId) {
+                    alert('No submittal ID provided');
+                    window.location.href = 'list.html';
+                    return;
+                }
+                
+                // Initialize delete modal
+                deleteModal = new bootstrap.Modal(document.getElementById('delete-modal'));
+                
+                // Load components
+                await loadComponents();
+                
+                // Load submittal data
+                await loadSubmittalData();
+                
+                // Load comments
+                await loadComments();
+                
+                // Load activity log
+                await loadActivityLog();
+                
+                // Set up event listeners
+                setupEventListeners();
+                
+                // Apply permissions
+                permissionsManager.applyPermissions();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                alert('An error occurred while loading the page. Please try refreshing.');
+            }
+        });
+        
+        async function loadComponents() {
+            try {
+                const headerContainer = document.getElementById('header-container');
+                const sidebarContainer = document.getElementById('sidebar-container');
+                const footerContainer = document.getElementById('footer-container');
+                
+                const headerResponse = await fetch('../../../components/layout/header.html');
+                const sidebarResponse = await fetch('../../../components/layout/sidebar.html');
+                const footerResponse = await fetch('../../../components/layout/footer.html');
+                
+                headerContainer.innerHTML = await headerResponse.text();
+                sidebarContainer.innerHTML = await sidebarResponse.text();
+                footerContainer.innerHTML = await footerResponse.text();
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+        
+        async function loadSubmittalData() {
+            try {
+                const result = await supabaseAPI.getById('submittals', submittalId, `
+                    *,
+                    creator:created_by (first_name, last_name, email),
+                    from_company:from_company_id (name),
+                    to_company:to_company_id (name),
+                    reviewer:reviewed_by (first_name, last_name, email)
+                `);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load submittal');
+                }
+                
+                submittalData = result.data;
+                
+                // Display submittal data
+                document.getElementById('submittal-number').textContent = submittalData.submittal_number || '';
+                document.getElementById('title').textContent = submittalData.title || '';
+                document.getElementById('spec-section').textContent = submittalData.spec_section || '';
+                document.getElementById('drawing-reference').textContent = submittalData.drawing_reference || '';
+                document.getElementById('from-company').textContent = submittalData.from_company?.name || '';
+                document.getElementById('to-company').textContent = submittalData.to_company?.name || '';
+                document.getElementById('date-created').textContent = formatDate(submittalData.date_created) || '';
+                document.getElementById('due-date').textContent = formatDate(submittalData.due_date) || '';
+                document.getElementById('description').innerHTML = submittalData.description || '';
+                
+                // Update status badge
+                const statusBadge = document.getElementById('status-badge');
+                statusBadge.className = 'badge ' + getStatusClass(submittalData.status);
+                statusBadge.textContent = formatStatus(submittalData.status);
+                
+                // Show/hide review container based on status
+                const reviewContainer = document.getElementById('review-container');
+                if (submittalData.status === 'reviewed' || submittalData.status === 'approved' || submittalData.status === 'rejected') {
+                    reviewContainer.classList.remove('d-none');
+                    document.getElementById('reviewer').textContent = submittalData.reviewer ? 
+                        `${submittalData.reviewer.first_name} ${submittalData.reviewer.last_name}` : '';
+                    document.getElementById('review-date').textContent = formatDate(submittalData.review_date) || '';
+                    document.getElementById('review-comments').innerHTML = submittalData.review_comments || '';
+                }
+                
+                // Set edit button URL
+                document.getElementById('edit-button').href = `form.html?id=${submittalId}`;
+                
+                // Check if user can delete this submittal
+                const userData = authService.getUserData();
+                if (userData && submittalData.created_by === userData.id) {
+                    document.getElementById('delete-button').classList.add('permission-delete-own');
+                    document.getElementById('delete-button').dataset.creatorId = submittalData.created_by;
+                }
+                
+                // Load attachments
+                await loadAttachments();
+            } catch (error) {
+                console.error('Error loading submittal:', error);
+                alert('Failed to load submittal data. Please try again.');
+            }
+        }
+        
+        async function loadAttachments() {
+            try {
+                // Fetch attachments related to this submittal
+                const { data, error } = await supabase
+                    .from('attachments')
+                    .select('*')
+                    .eq('module_table', 'submittals')
+                    .eq('record_id', submittalId);
+                
+                if (error) throw error;
+                
+                const attachmentsContainer = document.getElementById('attachments-container');
+                
+                if (!data || data.length === 0) {
+                    // Already showing "No attachments" message
+                    return;
+                }
+                
+                let html = '<div class="list-group">';
+                
+                for (const attachment of data) {
+                    const filename = attachment.file_name || 'Attachment';
+                    const fileUrl = attachment.file_url;
+                    const fileDate = formatDate(attachment.created_at);
+                    
+                    html += `
+                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-earmark me-2"></i>
+                                <a href="${fileUrl}" target="_blank">${filename}</a>
+                                <small class="text-muted ms-2">Added ${fileDate}</small>
+                            </div>
+                            <a href="${fileUrl}" download class="btn btn-sm btn-light" title="Download">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                attachmentsContainer.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading attachments:', error);
+            }
+        }
+        
+        async function loadComments() {
+            try {
+                const result = await supabaseAPI.getComments('submittals', submittalId);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load comments');
+                }
+                
+                const comments = result.data;
+                const commentsContainer = document.getElementById('comments-container');
+                
+                if (!comments || comments.length === 0) {
+                    commentsContainer.innerHTML = `
+                        <div class="text-center py-3 text-muted">
+                            <i class="bi bi-chat fs-4"></i>
+                            <p class="mb-0">No comments yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                for (const comment of comments) {
+                    const date = new Date(comment.created_at);
+                    const formattedDate = `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
+                    
+                    html += `
+                        <div class="comment mb-3">
+                            <div class="d-flex">
+                                <div class="me-2">
+                                    <div class="avatar-circle bg-primary text-white">
+                                        ${getInitials(comment.users.first_name, comment.users.last_name)}
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="fw-medium">${comment.users.first_name} ${comment.users.last_name}</div>
+                                        <small class="text-muted">${formattedDate}</small>
+                                    </div>
+                                    <div class="comment-text mt-1">${comment.comment_text}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                commentsContainer.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                const commentsContainer = document.getElementById('comments-container');
+                commentsContainer.innerHTML = '<div class="alert alert-danger">Failed to load comments</div>';
+            }
+        }
+        
+        async function loadActivityLog() {
+            try {
+                // Fetch activity log for this submittal
+                const { data, error } = await supabase
+                    .from('activity_log')
+                    .select(`
+                        *,
+                        users:user_id (first_name, last_name)
+                    `)
+                    .eq('module_name', 'submittals')
+                    .eq('record_id', submittalId)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                const activityLog = document.getElementById('activity-log');
+                
+                if (!data || data.length === 0) {
+                    activityLog.innerHTML = `
+                        <div class="list-group-item text-center text-muted py-3">
+                            <i class="bi bi-clock-history fs-4 d-block mb-1"></i>
+                            No activity recorded
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                for (const activity of data) {
+                    const date = new Date(activity.created_at);
+                    const formattedDate = `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    
+                    html += `
+                        <div class="list-group-item">
+                            <div class="d-flex">
+                                <div class="me-2">
+                                    <div class="avatar-circle ${getActivityIconClass(activity.action)} text-white">
+                                        <i class="bi ${getActivityIcon(activity.action)}"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="small text-muted">${formattedDate}</div>
+                                    <div>${activity.description}</div>
+                                    <div class="small text-muted">By ${activity.users ? activity.users.first_name + ' ' + activity.users.last_name : 'System'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                activityLog.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading activity log:', error);
+                const activityLog = document.getElementById('activity-log');
+                activityLog.innerHTML = '<div class="list-group-item text-danger">Failed to load activity log</div>';
+            }
+        }
+        
+        function setupEventListeners() {
+            // Export to PDF
+            document.getElementById('export-pdf').addEventListener('click', async function() {
+                try {
+                    // Create a new jsPDF instance
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    // Add header
+                    doc.setFontSize(18);
+                    doc.text(`Submittal #${submittalData.submittal_number}: ${submittalData.title}`, 14, 22);
+                    
+                    // Add status
+                    doc.setFontSize(12);
+                    doc.text(`Status: ${formatStatus(submittalData.status)}`, 14, 30);
+                    
+                    // Add metadata
+                    doc.setFontSize(11);
+                    doc.text(`From: ${submittalData.from_company?.name || ''}`, 14, 40);
+                    doc.text(`To: ${submittalData.to_company?.name || ''}`, 14, 47);
+                    doc.text(`Date Created: ${formatDate(submittalData.date_created) || ''}`, 14, 54);
+                    doc.text(`Due Date: ${formatDate(submittalData.due_date) || ''}`, 14, 61);
+                    doc.text(`Spec Section: ${submittalData.spec_section || ''}`, 14, 68);
+                    doc.text(`Drawing Reference: ${submittalData.drawing_reference || ''}`, 14, 75);
+                    
+                    // Add description
+                    doc.setFontSize(12);
+                    doc.text('Description:', 14, 85);
+                    doc.setFontSize(11);
+                    
+                    const description = submittalData.description.replace(/<[^>]*>/g, '') || '';
+                    const splitDescription = doc.splitTextToSize(description, 180);
+                    doc.text(splitDescription, 14, 92);
+                    
+                    let yPosition = 92 + (splitDescription.length * 7);
+                    
+                    // Add review information if available
+                    if (submittalData.status === 'reviewed' || submittalData.status === 'approved' || submittalData.status === 'rejected') {
+                        doc.setFontSize(12);
+                        doc.text('Review Information:', 14, yPosition + 10);
+                        doc.setFontSize(11);
+                        
+                        yPosition += 10;
+                        
+                        if (submittalData.reviewer) {
+                            doc.text(`Reviewer: ${submittalData.reviewer.first_name} ${submittalData.reviewer.last_name}`, 14, yPosition + 7);
+                            yPosition += 7;
+                        }
+                        
+                        if (submittalData.review_date) {
+                            doc.text(`Review Date: ${formatDate(submittalData.review_date)}`, 14, yPosition + 7);
+                            yPosition += 7;
+                        }
+                        
+                        if (submittalData.review_comments) {
+                            doc.text('Review Comments:', 14, yPosition + 7);
+                            yPosition += 7;
+                            
+                            const comments = submittalData.review_comments.replace(/<[^>]*>/g, '') || '';
+                            const splitComments = doc.splitTextToSize(comments, 180);
+                            doc.text(splitComments, 14, yPosition + 7);
+                        }
+                    }
+                    
+                    // Save PDF
+                    doc.save(`submittal-${submittalData.submittal_number}.pdf`);
+                } catch (error) {
+                    console.error('Error exporting to PDF:', error);
+                    alert('Failed to export to PDF. Please try again.');
+                }
+            });
+            
+            // Delete submittal
+            document.getElementById('delete-button').addEventListener('click', function() {
+                deleteModal.show();
+            });
+            
+            // Confirm delete
+            document.getElementById('confirm-delete').addEventListener('click', async function() {
+                try {
+                    const result = await supabaseAPI.delete('submittals', submittalId);
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to delete submittal');
+                    }
+                    
+                    deleteModal.hide();
+                    alert('Submittal deleted successfully');
+                    window.location.href = 'list.html';
+                } catch (error) {
+                    console.error('Error deleting submittal:', error);
+                    alert('Failed to delete submittal. Please try again.');
+                }
+            });
+            
+            // Post comment
+            document.getElementById('comment-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const commentText = document.getElementById('comment-text').value.trim();
+                
+                if (!commentText) {
+                    return;
+                }
+                
+                try {
+                    const result = await supabaseAPI.addComment('submittals', submittalId, commentText);
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to post comment');
+                    }
+                    
+                    // Clear comment field
+                    document.getElementById('comment-text').value = '';
+                    
+                    // Reload comments
+                    await loadComments();
+                    
+                    // Also reload activity log as a new entry should be there
+                    await loadActivityLog();
+                } catch (error) {
+                    console.error('Error posting comment:', error);
+                    alert('Failed to post comment. Please try again.');
+                }
+            });
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+        
+        function formatStatus(status) {
+            if (!status) return '';
+            
+            const statusMap = {
+                'draft': 'Draft',
+                'submitted': 'Submitted',
+                'in_review': 'In Review',
+                'reviewed': 'Reviewed',
+                'approved': 'Approved',
+                'rejected': 'Rejected',
+                'resubmit': 'Resubmit Required'
+            };
+            
+            return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+        }
+        
+        function getStatusClass(status) {
+            const statusClasses = {
+                'draft': 'bg-secondary',
+                'submitted': 'bg-primary',
+                'in_review': 'bg-info',
+                'reviewed': 'bg-warning text-dark',
+                'approved': 'bg-success',
+                'rejected': 'bg-danger',
+                'resubmit': 'bg-warning text-dark'
+            };
+            
+            return statusClasses[status] || 'bg-light text-dark';
+        }
+        
+        function getInitials(firstName, lastName) {
+            return (firstName?.charAt(0) || '') + (lastName?.charAt(0) || '');
+        }
+        
+        function getActivityIcon(action) {
+            const icons = {
+                'create': 'bi-plus-circle',
+                'update': 'bi-pencil',
+                'delete': 'bi-trash',
+                'comment': 'bi-chat-text',
+                'status_change': 'bi-arrow-repeat',
+                'attachment': 'bi-paperclip',
+                'review': 'bi-check2-circle',
+                'view': 'bi-eye'
+            };
+            
+            return icons[action] || 'bi-clock-history';
+        }
+        
+        function getActivityIconClass(action) {
+            const classes = {
+                'create': 'bg-success',
+                'update': 'bg-primary',
+                'delete': 'bg-danger',
+                'comment': 'bg-info',
+                'status_change': 'bg-warning',
+                'attachment': 'bg-secondary',
+                'review': 'bg-success',
+                'view': 'bg-light text-dark'
+            };
+            
+            return classes[action] || 'bg-secondary';
+        }
+    </script>
+</body>
+</html>
