@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFI Form - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../../assets/css/custom.css">
+    <link rel="stylesheet" href="../../../assets/css/components/sidebar.css">
+    <script src="../../../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../../../assets/js/core/auth.js" defer></script>
+    <script src="../../../assets/js/core/permissions.js" defer></script>
+    <script src="../../../assets/js/core/supabase-client.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h1 class="h3" id="form-title">New Request for Information</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../../../pages/dashboard.html">Dashboard</a></li>
+                                <li class="breadcrumb-item">Engineering</li>
+                                <li class="breadcrumb-item"><a href="list.html">RFIs</a></li>
+                                <li class="breadcrumb-item active" aria-current="page" id="breadcrumb-action">New RFI</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <a href="list.html" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">RFI Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="rfi-form" class="needs-validation" novalidate>
+                            <input type="hidden" id="rfi-id">
+                            <input type="hidden" id="project-id">
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="rfi-number" class="form-label">RFI Number</label>
+                                    <input type="text" class="form-control" id="rfi-number" required readonly>
+                                    <div class="form-text">Automatically generated</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" id="status" required>
+                                        <option value="draft">Draft</option>
+                                        <option value="open">Open</option>
+                                        <option value="in_review">In Review</option>
+                                        <option value="answered">Answered</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="due-date" class="form-label">Due Date</label>
+                                    <input type="date" class="form-control" id="due-date" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <input type="text" class="form-control" id="subject" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="from-company" class="form-label">From (Company)</label>
+                                    <select class="form-select" id="from-company" required>
+                                        <option value="">Select company</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="to-company" class="form-label">To (Company)</label>
+                                    <select class="form-select" id="to-company" required>
+                                        <option value="">Select company</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="from-contact" class="form-label">From (Contact)</label>
+                                    <select class="form-select" id="from-contact" required>
+                                        <option value="">Select contact</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="to-contact" class="form-label">To (Contact)</label>
+                                    <select class="form-select" id="to-contact" required>
+                                        <option value="">Select contact</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="question" class="form-label">Question/Information Requested</label>
+                                    <textarea class="form-control" id="question" rows="4" required></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="suggestion" class="form-label">Suggestion/Proposed Solution</label>
+                                    <textarea class="form-control" id="suggestion" rows="3"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="cost-impact" class="form-label">Cost Impact</label>
+                                    <select class="form-select" id="cost-impact">
+                                        <option value="none">None</option>
+                                        <option value="pending">Pending Analysis</option>
+                                        <option value="yes">Yes (Requires CO)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="schedule-impact" class="form-label">Schedule Impact</label>
+                                    <select class="form-select" id="schedule-impact">
+                                        <option value="none">None</option>
+                                        <option value="pending">Pending Analysis</option>
+                                        <option value="yes">Yes (Specify Days)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="answer-section" style="display: none;">
+                                <hr class="my-4">
+                                <h5 class="mb-3">Response</h5>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label for="answer" class="form-label">Answer</label>
+                                        <textarea class="form-control" id="answer" rows="4"></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="answered-by" class="form-label">Answered By</label>
+                                        <input type="text" class="form-control" id="answered-by" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="answered-date" class="form-label">Date Answered</label>
+                                        <input type="date" class="form-control" id="answered-date" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h5 class="mb-3">Attachments</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="attachments" class="form-label">Upload Files</label>
+                                    <input class="form-control" type="file" id="attachments" multiple>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <div id="attachments-list" class="border rounded p-3 bg-light">
+                                        <p class="text-muted mb-0">No attachments uploaded</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='list.html'">Cancel</button>
+                                <div>
+                                    <button type="submit" id="save-draft" class="btn btn-secondary me-2">Save as Draft</button>
+                                    <button type="submit" id="save-submit" class="btn btn-primary">Save & Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Check authentication
+                const { data: { user }, error } = await supabase.auth.getUser();
+                if (error || !user) {
+                    window.location.href = '../../../pages/auth/login.html';
+                    return;
+                }
+                
+                // Load components
+                await loadComponents();
+                
+                // Get current project ID
+                const projectId = localStorage.getItem('cm_current_project_id');
+                if (!projectId) {
+                    alert('No project selected. Please select a project first.');
+                    window.location.href = '../../../pages/projects/list.html';
+                    return;
+                }
+                document.getElementById('project-id').value = projectId;
+                
+                // Check if editing existing RFI
+                const urlParams = new URLSearchParams(window.location.search);
+                const rfiId = urlParams.get('id');
+                
+                if (rfiId) {
+                    // Edit mode
+                    document.getElementById('form-title').textContent = 'Edit Request for Information';
+                    document.getElementById('breadcrumb-action').textContent = 'Edit RFI';
+                    await loadRfiData(rfiId);
+                } else {
+                    // Create mode
+                    await setupNewRfi(projectId);
+                }
+                
+                // Load companies for dropdowns
+                await loadCompanies();
+                
+                // Set up form event listeners
+                setupFormListeners();
+                
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                alert('An error occurred while loading the page. Please try refreshing.');
+            }
+        });
+        
+        async function loadComponents() {
+            try {
+                const headerContainer = document.getElementById('header-container');
+                const sidebarContainer = document.getElementById('sidebar-container');
+                const footerContainer = document.getElementById('footer-container');
+                
+                const headerResponse = await fetch('../../../components/layout/header.html');
+                const sidebarResponse = await fetch('../../../components/layout/sidebar.html');
+                const footerResponse = await fetch('../../../components/layout/footer.html');
+                
+                headerContainer.innerHTML = await headerResponse.text();
+                sidebarContainer.innerHTML = await sidebarResponse.text();
+                footerContainer.innerHTML = await footerResponse.text();
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+        
+        async function setupNewRfi(projectId) {
+            // Get next RFI number for the project
+            const { data: project, error: projectError } = await supabase
+                .from('projects')
+                .select('next_rfi_number')
+                .eq('id', projectId)
+                .single();
+                
+            if (projectError) {
+                console.error('Error getting project:', projectError);
+                return;
+            }
+            
+            // Set the RFI number
+            const nextRfiNumber = project.next_rfi_number || 1;
+            document.getElementById('rfi-number').value = nextRfiNumber.toString().padStart(3, '0');
+            
+            // Set default values
+            document.getElementById('status').value = 'draft';
+            
+            // Set due date default (14 days from now)
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14);
+            document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
+            
+            // Set current user as from contact
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('id, company_id')
+                .eq('user_id', (await supabase.auth.getUser()).data.user.id)
+                .single();
+                
+            if (profile) {
+                document.getElementById('from-company').value = profile.company_id;
+                // The from-contact will be populated when companies are loaded
+            }
+        }
+        
+        async function loadRfiData(rfiId) {
+            const { data: rfi, error } = await supabase
+                .from('rfi')
+                .select(`
+                    *,
+                    from_company:from_company_id(id, name),
+                    to_company:to_company_id(id, name),
+                    from_contact:from_contact_id(id, first_name, last_name),
+                    to_contact:to_contact_id(id, first_name, last_name),
+                    answered_by:answered_by_id(id, first_name, last_name)
+                `)
+                .eq('id', rfiId)
+                .single();
+                
+            if (error) {
+                console.error('Error loading RFI:', error);
+                alert('Could not load RFI data. Please try again.');
+                return;
+            }
+            
+            // Populate form with RFI data
+            document.getElementById('rfi-id').value = rfi.id;
+            document.getElementById('rfi-number').value = rfi.number;
+            document.getElementById('subject').value = rfi.subject;
+            document.getElementById('status').value = rfi.status;
+            document.getElementById('due-date').value = rfi.due_date;
+            document.getElementById('question').value = rfi.question;
+            document.getElementById('suggestion').value = rfi.suggestion || '';
+            document.getElementById('cost-impact').value = rfi.cost_impact || 'none';
+            document.getElementById('schedule-impact').value = rfi.schedule_impact || 'none';
+            
+            // Handle company and contact dropdowns
+            // These will be fully populated in the loadCompanies function,
+            // we just need to save the values to select later
+            if (rfi.from_company) {
+                document.getElementById('from-company').dataset.selectedId = rfi.from_company_id;
+            }
+            if (rfi.to_company) {
+                document.getElementById('to-company').dataset.selectedId = rfi.to_company_id;
+            }
+            if (rfi.from_contact) {
+                document.getElementById('from-contact').dataset.selectedId = rfi.from_contact_id;
+            }
+            if (rfi.to_contact) {
+                document.getElementById('to-contact').dataset.selectedId = rfi.to_contact_id;
+            }
+            
+            // Show answer section if RFI has been answered
+            if (rfi.answer) {
+                document.getElementById('answer-section').style.display = 'block';
+                document.getElementById('answer').value = rfi.answer;
+                
+                if (rfi.answered_by) {
+                    const answeredByName = `${rfi.answered_by.first_name} ${rfi.answered_by.last_name}`;
+                    document.getElementById('answered-by').value = answeredByName;
+                }
+                
+                if (rfi.answered_date) {
+                    document.getElementById('answered-date').value = rfi.answered_date;
+                }
+            }
+            
+            // Load attachments
+            await loadAttachments(rfiId);
+        }
+        
+        async function loadCompanies() {
+            const { data: companies, error } = await supabase
+                .from('companies')
+                .select('id, name')
+                .order('name');
+                
+            if (error) {
+                console.error('Error loading companies:', error);
+                return;
+            }
+            
+            // Populate company dropdowns
+            const fromCompanySelect = document.getElementById('from-company');
+            const toCompanySelect = document.getElementById('to-company');
+            
+            // Clear existing options except the first one
+            while (fromCompanySelect.options.length > 1) fromCompanySelect.remove(1);
+            while (toCompanySelect.options.length > 1) toCompanySelect.remove(1);
+            
+            // Add company options
+            companies.forEach(company => {
+                const fromOption = new Option(company.name, company.id);
+                const toOption = new Option(company.name, company.id);
+                fromCompanySelect.add(fromOption);
+                toCompanySelect.add(toOption);
+            });
+            
+            // Set selected company if editing
+            if (fromCompanySelect.dataset.selectedId) {
+                fromCompanySelect.value = fromCompanySelect.dataset.selectedId;
+                await loadContacts('from-company', 'from-contact');
+            }
+            
+            if (toCompanySelect.dataset.selectedId) {
+                toCompanySelect.value = toCompanySelect.dataset.selectedId;
+                await loadContacts('to-company', 'to-contact');
+            }
+            
+            // Add event listeners to load contacts when company changes
+            fromCompanySelect.addEventListener('change', () => loadContacts('from-company', 'from-contact'));
+            toCompanySelect.addEventListener('change', () => loadContacts('to-company', 'to-contact'));
+        }
+        
+        async function loadContacts(companySelectId, contactSelectId) {
+            const companySelect = document.getElementById(companySelectId);
+            const contactSelect = document.getElementById(contactSelectId);
+            const companyId = companySelect.value;
+            
+            // Clear existing options except the first one
+            while (contactSelect.options.length > 1) contactSelect.remove(1);
+            
+            if (!companyId) return;
+            
+            const { data: contacts, error } = await supabase
+                .from('contacts')
+                .select('id, first_name, last_name, email')
+                .eq('company_id', companyId)
+                .order('last_name');
+                
+            if (error) {
+                console.error('Error loading contacts:', error);
+                return;
+            }
+            
+            // Add contact options
+            contacts.forEach(contact => {
+                const name = `${contact.first_name} ${contact.last_name}`;
+                const option = new Option(name, contact.id);
+                contactSelect.add(option);
+            });
+            
+            // Set selected contact if editing
+            if (contactSelect.dataset.selectedId) {
+                contactSelect.value = contactSelect.dataset.selectedId;
+            }
+        }
+        
+        async function loadAttachments(rfiId) {
+            const { data: attachments, error } = await supabase
+                .storage
+                .from('rfi_attachments')
+                .list(`${rfiId}/`);
+                
+            if (error) {
+                console.error('Error loading attachments:', error);
+                return;
+            }
+            
+            const attachmentsList = document.getElementById('attachments-list');
+            
+            if (attachments && attachments.length > 0) {
+                let html = '<ul class="list-group list-group-flush">';
+                
+                attachments.forEach(file => {
+                    const fileUrl = supabase.storage.from('rfi_attachments').getPublicUrl(`${rfiId}/${file.name}`).data.publicUrl;
+                    
+                    html += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-light border-0 px-0 py-2">
+                            <a href="${fileUrl}" target="_blank">${file.name}</a>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-attachment" 
+                                data-filename="${file.name}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </li>
+                    `;
+                });
+                
+                html += '</ul>';
+                attachmentsList.innerHTML = html;
+                
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-attachment').forEach(button => {
+                    button.addEventListener('click', async function() {
+                        if (confirm('Are you sure you want to delete this attachment?')) {
+                            const filename = this.dataset.filename;
+                            await deleteAttachment(rfiId, filename);
+                            await loadAttachments(rfiId);
+                        }
+                    });
+                });
+            } else {
+                attachmentsList.innerHTML = '<p class="text-muted mb-0">No attachments uploaded</p>';
+            }
+        }
+        
+        async function deleteAttachment(rfiId, filename) {
+            const { error } = await supabase.storage
+                .from('rfi_attachments')
+                .remove([`${rfiId}/${filename}`]);
+                
+            if (error) {
+                console.error('Error deleting attachment:', error);
+                alert('Failed to delete attachment. Please try again.');
+            }
+        }
+        
+        function setupFormListeners() {
+            const form = document.getElementById('rfi-form');
+            const saveDraftBtn = document.getElementById('save-draft');
+            const saveSubmitBtn = document.getElementById('save-submit');
+            
+            saveDraftBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                await saveRfi('draft');
+            });
+            
+            saveSubmitBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                // Validate form
+                if (!form.checkValidity()) {
+                    e.stopPropagation();
+                    form.classList.add('was-validated');
+                    return;
+                }
+                
+                await saveRfi('open');
+            });
+            
+            // Handle file uploads
+            document.getElementById('attachments').addEventListener('change', handleFileUpload);
+        }
+        
+        async function saveRfi(saveStatus) {
+            try {
+                const rfiId = document.getElementById('rfi-id').value;
+                const projectId = document.getElementById('project-id').value;
+                const number = document.getElementById('rfi-number').value;
+                const subject = document.getElementById('subject').value;
+                const fromCompanyId = document.getElementById('from-company').value;
+                const toCompanyId = document.getElementById('to-company').value;
+                const fromContactId = document.getElementById('from-contact').value;
+                const toContactId = document.getElementById('to-contact').value;
+                const question = document.getElementById('question').value;
+                const suggestion = document.getElementById('suggestion').value;
+                const dueDate = document.getElementById('due-date').value;
+                const status = saveStatus || document.getElementById('status').value;
+                const costImpact = document.getElementById('cost-impact').value;
+                const scheduleImpact = document.getElementById('schedule-impact').value;
+                
+                // Get current user ID
+                const { data: { user } } = await supabase.auth.getUser();
+                
+                const rfiData = {
+                    project_id: projectId,
+                    number: number,
+                    subject: subject,
+                    from_company_id: fromCompanyId,
+                    to_company_id: toCompanyId,
+                    from_contact_id: fromContactId,
+                    to_contact_id: toContactId,
+                    question: question,
+                    suggestion: suggestion,
+                    due_date: dueDate,
+                    status: status,
+                    cost_impact: costImpact,
+                    schedule_impact: scheduleImpact
+                };
+                
+                let result;
+                
+                if (rfiId) {
+                    // Update existing RFI
+                    rfiData.updated_by = user.id;
+                    rfiData.updated_at = new Date().toISOString();
+                    
+                    result = await supabase
+                        .from('rfi')
+                        .update(rfiData)
+                        .eq('id', rfiId);
+                } else {
+                    // Create new RFI
+                    rfiData.created_by = user.id;
+                    rfiData.date_created = new Date().toISOString();
+                    
+                    result = await supabase
+                        .from('rfi')
+                        .insert(rfiData)
+                        .select();
+                        
+                    // Update project's next RFI number
+                    await supabase
+                        .from('projects')
+                        .update({ next_rfi_number: parseInt(number) + 1 })
+                        .eq('id', projectId);
+                }
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+                
+                // Handle file uploads if there are any new files
+                const fileInput = document.getElementById('attachments');
+                if (fileInput.files.length > 0) {
+                    const newRfiId = rfiId || result.data[0].id;
+                    await uploadFiles(newRfiId, fileInput.files);
+                }
+                
+                // Redirect back to list
+                window.location.href = 'list.html';
+                
+            } catch (error) {
+                console.error('Error saving RFI:', error);
+                alert('Failed to save RFI. ' + error.message);
+            }
+        }
+        
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            // Preview files
+            const attachmentsList = document.getElementById('attachments-list');
+            let html = '<ul class="list-group list-group-flush">';
+            
+            Array.from(files).forEach(file => {
+                html += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light border-0 px-0 py-2">
+                        ${file.name} <span class="badge bg-primary">New</span>
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            attachmentsList.innerHTML = html;
+        }
+        
+        async function uploadFiles(rfiId, files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const filePath = `${rfiId}/${file.name}`;
+                
+                const { error } = await supabase.storage
+                    .from('rfi_attachments')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+                    
+                if (error) {
+                    console.error('Error uploading file:', error);
+                    alert(`Failed to upload ${file.name}. Please try again.`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
