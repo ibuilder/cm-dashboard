@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CMDashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/custom.css">
+    <link rel="stylesheet" href="../assets/css/components/sidebar.css">
+    <script src="../config/supabase-config.js"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+    </script>
+    <script src="../assets/js/core/auth.js" defer></script>
+    <script src="../assets/js/core/permissions.js" defer></script>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Include sidebar -->
+        <div id="sidebar-container"></div>
+        
+        <div class="main-content">
+            <!-- Include header -->
+            <div id="header-container"></div>
+            
+            <div class="container-fluid py-4">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h1 class="h3">Project Dashboard</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">RFIs</h5>
+                                <p class="card-text fs-2" id="rfi-count">--</p>
+                                <p class="mb-0">Open: <span id="open-rfi-count">--</span></p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="../modules/engineering/rfi/list.html" class="text-white">View all RFIs →</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Submittals</h5>
+                                <p class="card-text fs-2" id="submittal-count">--</p>
+                                <p class="mb-0">Pending: <span id="pending-submittal-count">--</span></p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="../modules/engineering/submittals/list.html" class="text-white">View all Submittals →</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Change Orders</h5>
+                                <p class="card-text fs-2" id="co-count">--</p>
+                                <p class="mb-0">Pending: <span id="pending-co-count">--</span></p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="../modules/cost/change-orders/list.html" class="text-dark">View all Change Orders →</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Daily Reports</h5>
+                                <p class="card-text fs-2" id="daily-report-count">--</p>
+                                <p class="mb-0">Last: <span id="last-daily-report">--</span></p>
+                            </div>
+                            <div class="card-footer bg-transparent border-0">
+                                <a href="../modules/field/daily-reports/list.html" class="text-white">View all Daily Reports →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Activity</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Filter
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">All Activity</a></li>
+                                        <li><a class="dropdown-item" href="#">RFIs</a></li>
+                                        <li><a class="dropdown-item" href="#">Submittals</a></li>
+                                        <li><a class="dropdown-item" href="#">Change Orders</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="activity-list">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-3" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Loading recent activity...
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="#" class="btn btn-sm btn-outline-primary">View All Activity</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Upcoming Deadlines</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="deadline-list">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-3" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        Loading upcoming deadlines...
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="#" class="btn btn-sm btn-outline-primary">View All Deadlines</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Include footer -->
+            <div id="footer-container"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check authentication
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error || !user) {
+                    // Redirect to login
+                    window.location.href = '/pages/auth/login.html';
+                    return;
+                }
+                
+                // Load components
+                await loadComponents();
+                
+                // Load dashboard data
+                await loadDashboardData();
+            } catch (error) {
+                console.error('Authentication error:', error);
+                window.location.href = '/pages/auth/login.html';
+            }
+        });
+        
+        async function loadComponents() {
+            try {
+                const headerContainer = document.getElementById('header-container');
+                const sidebarContainer = document.getElementById('sidebar-container');
+                const footerContainer = document.getElementById('footer-container');
+                
+                const headerResponse = await fetch('../components/layout/header.html');
+                const sidebarResponse = await fetch('../components/layout/sidebar.html');
+                const footerResponse = await fetch('../components/layout/footer.html');
+                
+                headerContainer.innerHTML = await headerResponse.text();
+                sidebarContainer.innerHTML = await sidebarResponse.text();
+                footerContainer.innerHTML = await footerResponse.text();
+            } catch (error) {
+                console.error('Error loading components:', error);
+            }
+        }
+        
+        async function loadDashboardData() {
+            try {
+                const projectId = localStorage.getItem('cm_current_project_id');
+                if (!projectId) return;
+                
+                // For each stat widget, load the data from Supabase
+                await Promise.all([
+                    loadRfiStats(projectId),
+                    loadSubmittalStats(projectId),
+                    loadChangeOrderStats(projectId),
+                    loadDailyReportStats(projectId),
+                    loadRecentActivity(projectId),
+                    loadUpcomingDeadlines(projectId)
+                ]);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+        
+        async function loadRfiStats(projectId) {
+            try {
+                // Get total RFIs
+                const { count: totalCount, error: totalError } = await supabase
+                    .from('rfi')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('project_id', projectId);
+                
+                if (totalError) throw totalError;
+                document.getElementById('rfi-count').textContent = totalCount || 0;
+                
+                // Get open RFIs
+                const { count: openCount, error: openError } = await supabase
+                    .from('rfi')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('project_id', projectId)
+                    .eq('status', 'open');
+                
+                if (openError) throw openError;
+                document.getElementById('open-rfi-count').textContent = openCount || 0;
+            } catch (error) {
+                console.error('Error loading RFI stats:', error);
+            }
+        }
+        
+        async function loadSubmittalStats(projectId) {
+            try {
+                // Similar to RFI stats
+                document.getElementById('submittal-count').textContent = '0';
+                document.getElementById('pending-submittal-count').textContent = '0';
+            } catch (error) {
+                console.error('Error loading submittal stats:', error);
+            }
+        }
+        
+        async function loadChangeOrderStats(projectId) {
+            try {
+                // Similar to RFI stats
+                document.getElementById('co-count').textContent = '0';
+                document.getElementById('pending-co-count').textContent = '0';
+            } catch (error) {
+                console.error('Error loading change order stats:', error);
+            }
+        }
+        
+        async function loadDailyReportStats(projectId) {
+            try {
+                // Similar to RFI stats
+                document.getElementById('daily-report-count').textContent = '0';
+                document.getElementById('last-daily-report').textContent = 'None';
+            } catch (error) {
+                console.error('Error loading daily report stats:', error);
+            }
+        }
+        
+        async function loadRecentActivity(projectId) {
+            try {
+                document.getElementById('activity-list').innerHTML = `
+                    <li class="list-group-item text-center">
+                        No recent activity found.
+                    </li>
+                `;
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+            }
+        }
+        
+        async function loadUpcomingDeadlines(projectId) {
+            try {
+                document.getElementById('deadline-list').innerHTML = `
+                    <li class="list-group-item text-center">
+                        No upcoming deadlines found.
+                    </li>
+                `;
+            } catch (error) {
+                console.error('Error loading upcoming deadlines:', error);
+            }
+        }
+    </script>
+</body>
+</html>

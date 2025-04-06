@@ -1,0 +1,492 @@
+<div class="crud-table-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="crud-table-title">Records</h5>
+        <div class="table-actions">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm filter-btn">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm export-pdf-btn">
+                    <i class="bi bi-file-earmark-pdf"></i> Export
+                </button>
+                <button type="button" class="btn btn-primary btn-sm create-btn permission-create">
+                    <i class="bi bi-plus-lg"></i> Add New
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filters-panel mb-3 d-none">
+        <div class="row">
+            <!-- Filter fields will be added dynamically -->
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Status</label>
+                <select class="form-select form-select-sm filter-field" data-field="status">
+                    <option value="">All</option>
+                    <option value="open">Open</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Date Range</label>
+                <input type="date" class="form-control form-control-sm filter-field" data-field="date_from">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">To</label>
+                <input type="date" class="form-control form-control-sm filter-field" data-field="date_to">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control form-control-sm filter-field" data-field="search" placeholder="Search...">
+            </div>
+        </div>
+        <div class="d-flex justify-content-end mt-2">
+            <button type="button" class="btn btn-sm btn-secondary me-2 reset-filters-btn">Reset</button>
+            <button type="button" class="btn btn-sm btn-primary apply-filters-btn">Apply Filters</button>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead>
+                <tr>
+                    <!-- Table headers will be added dynamically -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be added dynamically -->
+                <tr>
+                    <td colspan="100%" class="text-center py-4">Loading data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="page-info">
+            Showing <span class="current-range">0-0</span> of <span class="total-records">0</span> records
+        </div>
+        <nav aria-label="Table pagination">
+            <ul class="pagination pagination-sm">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    class CrudTable {
+        constructor(options) {
+            this.container = options.container;
+            this.tableTitle = options.title || 'Records';
+            this.table = options.table;
+            this.columns = options.columns || [];
+            this.apiEndpoint = options.apiEndpoint;
+            this.createUrl = options.createUrl;
+            this.viewUrl = options.viewUrl;
+            this.currentPage = 1;
+            this.pageSize = options.pageSize || 10;
+            this.totalRecords = 0;
+            this.filters = {};
+            this.sortField = options.defaultSortField;
+            this.sortDirection = options.defaultSortDirection || 'asc';
+            
+            this.init();
+        }
+        
+        init() {
+            this.renderTableHeader();
+            this.setupEventListeners();
+            this.loadData();
+        }
+        
+        renderTableHeader() {
+            // Set table title
+            const titleElement = this.container.querySelector('.crud-table-title');
+            if (titleElement) {
+                titleElement.textContent = this.tableTitle;
+            }
+            
+            // Clear and add table headers
+            const headerRow = this.container.querySelector('thead tr');
+            headerRow.innerHTML = '';
+            
+            this.columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column.title;
+                
+                if (column.sortable) {
+                    th.classList.add('sortable');
+                    th.dataset.field = column.field;
+                    
+                    // Add sort indicator
+                    if (this.sortField === column.field) {
+                        th.classList.add(this.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                        th.innerHTML = `${column.title} <i class="bi bi-arrow-${this.sortDirection === 'asc' ? 'up' : 'down'}"></i>`;
+                    }
+                }
+                
+                headerRow.appendChild(th);
+            });
+            
+            // Add action column if view URL is provided
+            if (this.viewUrl) {
+                const actionsHeader = document.createElement('th');
+                actionsHeader.textContent = 'Actions';
+                actionsHeader.style.width = '100px';
+                headerRow.appendChild(actionsHeader);
+            }
+        }
+        
+        setupEventListeners() {
+            // Sort headers
+            this.container.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const field = th.dataset.field;
+                    if (this.sortField === field) {
+                        // Toggle direction
+                        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        this.sortField = field;
+                        this.sortDirection = 'asc';
+                    }
+                    
+                    this.currentPage = 1;
+                    this.renderTableHeader();
+                    this.loadData();
+                });
+            });
+            
+            // Filter toggle
+            const filterBtn = this.container.querySelector('.filter-btn');
+            if (filterBtn) {
+                filterBtn.addEventListener('click', () => {
+                    const filterPanel = this.container.querySelector('.filters-panel');
+                    filterPanel.classList.toggle('d-none');
+                });
+            }
+            
+            // Apply filters
+            const applyFiltersBtn = this.container.querySelector('.apply-filters-btn');
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', () => {
+                    this.filters = {};
+                    
+                    // Get all filter values
+                    this.container.querySelectorAll('.filter-field').forEach(field => {
+                        const value = field.value.trim();
+                        if (value) {
+                            this.filters[field.dataset.field] = value;
+                        }
+                    });
+                    
+                    this.currentPage = 1;
+                    this.loadData();
+                });
+            }
+            
+            // Reset filters
+            const resetFiltersBtn = this.container.querySelector('.reset-filters-btn');
+            if (resetFiltersBtn) {
+                resetFiltersBtn.addEventListener('click', () => {
+                    this.container.querySelectorAll('.filter-field').forEach(field => {
+                        field.value = '';
+                    });
+                    
+                    this.filters = {};
+                    this.currentPage = 1;
+                    this.loadData();
+                });
+            }
+            
+            // Create button
+            const createBtn = this.container.querySelector('.create-btn');
+            if (createBtn && this.createUrl) {
+                createBtn.addEventListener('click', () => {
+                    window.location.href = this.createUrl;
+                });
+            }
+            
+            // Export to PDF
+            const exportBtn = this.container.querySelector('.export-pdf-btn');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    this.exportToPdf();
+                });
+            }
+            
+            // Pagination
+            this.container.querySelector('.pagination').addEventListener('click', e => {
+                if (e.target.classList.contains('page-link')) {
+                    e.preventDefault();
+                    
+                    const pageItem = e.target.closest('.page-item');
+                    if (pageItem.classList.contains('disabled')) return;
+                    
+                    if (e.target.textContent === 'Previous') {
+                        this.currentPage--;
+                    } else if (e.target.textContent === 'Next') {
+                        this.currentPage++;
+                    } else {
+                        this.currentPage = parseInt(e.target.textContent);
+                    }
+                    
+                    this.loadData();
+                }
+            });
+        }
+        
+        async loadData() {
+            try {
+                const tbody = this.container.querySelector('tbody');
+                tbody.innerHTML = '<tr><td colspan="100%" class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div> Loading data...</td></tr>';
+                
+                // Prepare options for API
+                const options = {
+                    page: this.currentPage,
+                    pageSize: this.pageSize,
+                    filters: this.filters
+                };
+                
+                if (this.sortField) {
+                    options.orderBy = this.sortField;
+                    options.ascending = this.sortDirection === 'asc';
+                }
+                
+                // Call API to get data
+                const result = await supabaseAPI.read(this.table, options);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+                
+                this.renderTableBody(result.data);
+                this.updatePagination(result.count);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                const tbody = this.container.querySelector('tbody');
+                tbody.innerHTML = `<tr><td colspan="100%" class="text-center text-danger py-4">Error loading data: ${error.message}</td></tr>`;
+            }
+        }
+        
+        renderTableBody(data) {
+            const tbody = this.container.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="100%" class="text-center py-4">No records found</td></tr>';
+                return;
+            }
+            
+            data.forEach(record => {
+                const tr = document.createElement('tr');
+                
+                // Add cells for each column
+                this.columns.forEach(column => {
+                    const td = document.createElement('td');
+                    
+                    // Get value based on field path (supports nested properties)
+                    let value = record;
+                    const fieldParts = column.field.split('.');
+                    
+                    for (const part of fieldParts) {
+                        if (value === null || value === undefined) break;
+                        value = value[part];
+                    }
+                    
+                    // Format value if formatter is provided
+                    if (column.formatter && typeof column.formatter === 'function') {
+                        td.innerHTML = column.formatter(value, record);
+                    } else {
+                        // Apply default formatting based on value type
+                        if (value === null || value === undefined) {
+                            td.textContent = '-';
+                        } else if (column.type === 'date' && value) {
+                            td.textContent = new Date(value).toLocaleDateString();
+                        } else if (column.type === 'datetime' && value) {
+                            td.textContent = new Date(value).toLocaleString();
+                        } else if (column.type === 'boolean') {
+                            td.innerHTML = value ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>';
+                        } else if (column.type === 'status') {
+                            let badgeClass = 'bg-secondary';
+                            
+                            switch(value?.toLowerCase()) {
+                                case 'open':
+                                    badgeClass = 'bg-primary';
+                                    break;
+                                case 'pending':
+                                    badgeClass = 'bg-warning text-dark';
+                                    break;
+                                case 'approved':
+                                    badgeClass = 'bg-success';
+                                    break;
+                                case 'rejected':
+                                    badgeClass = 'bg-danger';
+                                    break;
+                                case 'closed':
+                                    badgeClass = 'bg-secondary';
+                                    break;
+                            }
+                            
+                            td.innerHTML = `<span class="badge ${badgeClass}">${value || '-'}</span>`;
+                        } else {
+                            td.textContent = value || '-';
+                        }
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                // Add action column if view URL is provided
+                if (this.viewUrl) {
+                    const actionsTd = document.createElement('td');
+                    actionsTd.classList.add('text-end');
+                    
+                    // View button
+                    const viewBtn = document.createElement('a');
+                    viewBtn.href = this.viewUrl.replace(':id', record.id);
+                    viewBtn.className = 'btn btn-sm btn-outline-primary me-1';
+                    viewBtn.innerHTML = '<i class="bi bi-eye"></i>';
+                    viewBtn.title = 'View';
+                    
+                    actionsTd.appendChild(viewBtn);
+                    
+                    // Add delete button for admin or record owner
+                    if (window.permissionsManager) {
+                        if (permissionsManager.canDelete() || 
+                            (permissionsManager.canDeleteOwn(record.created_by) && 
+                             record.created_by)) {
+                            
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.type = 'button';
+                            deleteBtn.className = 'btn btn-sm btn-outline-danger permission-delete-own';
+                            deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                            deleteBtn.title = 'Delete';
+                            deleteBtn.dataset.id = record.id;
+                            deleteBtn.dataset.creatorId = record.created_by;
+                            
+                            deleteBtn.addEventListener('click', async () => {
+                                if (confirm('Are you sure you want to delete this record?')) {
+                                    try {
+                                        const result = await supabaseAPI.delete(this.table, record.id);
+                                        
+                                        if (result.success) {
+                                            this.loadData();
+                                        } else {
+                                            alert('Failed to delete record: ' + result.error);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error deleting record:', error);
+                                        alert('An error occurred while deleting the record.');
+                                    }
+                                }
+                            });
+                            
+                            actionsTd.appendChild(deleteBtn);
+                        }
+                    }
+                    
+                    tr.appendChild(actionsTd);
+                }
+                
+                tbody.appendChild(tr);
+            });
+        }
+        
+        updatePagination(totalCount) {
+            this.totalRecords = totalCount || 0;
+            const totalPages = Math.ceil(this.totalRecords / this.pageSize);
+            
+            // Update page info
+            const startRecord = (this.currentPage - 1) * this.pageSize + 1;
+            const endRecord = Math.min(startRecord + this.pageSize - 1, this.totalRecords);
+            
+            this.container.querySelector('.current-range').textContent = 
+                this.totalRecords > 0 ? `${startRecord}-${endRecord}` : '0-0';
+            this.container.querySelector('.total-records').textContent = this.totalRecords;
+            
+            // Update pagination
+            const pagination = this.container.querySelector('.pagination');
+            pagination.innerHTML = '';
+            
+            // Previous button
+            const prevItem = document.createElement('li');
+            prevItem.className = `page-item ${this.currentPage === 1 ? 'disabled' : ''}`;
+            prevItem.innerHTML = `<a class="page-link" href="#">Previous</a>`;
+            pagination.appendChild(prevItem);
+            
+            // Page numbers
+            const maxPages = 5;
+            const startPage = Math.max(1, Math.min(this.currentPage - Math.floor(maxPages / 2), totalPages - maxPages + 1));
+            const endPage = Math.min(startPage + maxPages - 1, totalPages);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageItem = document.createElement('li');
+                pageItem.className = `page-item ${i === this.currentPage ? 'active' : ''}`;
+                pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                pagination.appendChild(pageItem);
+            }
+            
+            // Next button
+            const nextItem = document.createElement('li');
+            nextItem.className = `page-item ${this.currentPage >= totalPages ? 'disabled' : ''}`;
+            nextItem.innerHTML = `<a class="page-link" href="#">Next</a>`;
+            pagination.appendChild(nextItem);
+        }
+        
+        async exportToPdf() {
+            try {
+                // Get all data for export
+                const options = {
+                    filters: this.filters
+                };
+                
+                if (this.sortField) {
+                    options.orderBy = this.sortField;
+                    options.ascending = this.sortDirection === 'asc';
+                }
+                
+                // Call API to get all data (without pagination)
+                const result = await supabaseAPI.read(this.table, options);
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load data for export');
+                }
+                
+                // Check if we have data to export
+                if (!result.data || result.data.length === 0) {
+                    alert('No data to export.');
+                    return;
+                }
+                
+                // Use export-pdf.js utility to generate PDF
+                if (window.exportToPdf) {
+                    await exportToPdf({
+                        title: this.tableTitle,
+                        columns: this.columns,
+                        data: result.data
+                    });
+                } else {
+                    alert('Export functionality not available.');
+                }
+            } catch (error) {
+                console.error('Error exporting to PDF:', error);
+                alert('Failed to export data: ' + error.message);
+            }
+        }
+    }
+
+    // Make the class available globally
+    window.CrudTable = CrudTable;
+</script>

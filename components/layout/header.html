@@ -1,0 +1,142 @@
+<header class="bg-white shadow-sm mb-4">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between py-3">
+            <!-- Mobile menu toggle -->
+            <button id="sidebar-toggle" class="btn btn-light d-md-none">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <!-- Project selector -->
+            <div class="dropdown d-none d-md-block">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <span id="current-project-name">Current Project</span>
+                </button>
+                <ul class="dropdown-menu" id="project-dropdown">
+                    <li><a class="dropdown-item" href="#">Loading projects...</a></li>
+                </ul>
+            </div>
+            
+            <!-- Search bar -->
+            <div class="d-none d-md-block">
+                <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- User menu -->
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle text-decoration-none" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span id="user-name">User Name</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" id="logout-button"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    function initializeHeader() {
+        // Get user data and update header
+        const userData = authService.getUserData();
+        if (userData) {
+            document.getElementById('user-name').textContent = `${userData.first_name} ${userData.last_name}`;
+        }
+        
+        // Set up logout button
+        document.getElementById('logout-button').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const result = await authService.logout();
+            if (result.success) {
+                window.location.href = '/index.html';
+            }
+        });
+        
+        // Load projects
+        loadProjects();
+    }
+    
+    async function loadProjects() {
+        try {
+            const projectDropdown = document.getElementById('project-dropdown');
+            const currentProjectName = document.getElementById('current-project-name');
+            
+            // Get current project from storage
+            const currentProjectId = localStorage.getItem('cm_current_project_id');
+            
+            // Fetch projects
+            const { data, error } = await supabase
+                .from('projects')
+                .select('*')
+                .order('name');
+                
+            if (error) throw error;
+            
+            // Update dropdown
+            projectDropdown.innerHTML = '';
+            
+            if (data && data.length > 0) {
+                data.forEach(project => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.className = 'dropdown-item';
+                    a.href = '#';
+                    a.textContent = project.name;
+                    a.dataset.projectId = project.id;
+                    
+                    // Mark current project
+                    if (project.id.toString() === currentProjectId) {
+                        a.classList.add('active');
+                        currentProjectName.textContent = project.name;
+                    }
+                    
+                    a.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Set as current project
+                        localStorage.setItem('cm_current_project_id', project.id);
+                        // Reload page
+                        window.location.reload();
+                    });
+                    
+                    li.appendChild(a);
+                    projectDropdown.appendChild(li);
+                });
+                
+                // If no current project is set, set the first one
+                if (!currentProjectId && data.length > 0) {
+                    localStorage.setItem('cm_current_project_id', data[0].id);
+                    currentProjectName.textContent = data[0].name;
+                }
+            } else {
+                // No projects found
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.className = 'dropdown-item';
+                a.href = '#';
+                a.textContent = 'No projects available';
+                li.appendChild(a);
+                projectDropdown.appendChild(li);
+            }
+        } catch (error) {
+            console.error('Error loading projects:', error);
+            
+            // Show error in dropdown
+            document.getElementById('project-dropdown').innerHTML = `
+                <li><a class="dropdown-item text-danger" href="#">Error loading projects</a></li>
+            `;
+        }
+    }
+    
+    // Initialize header when included
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeHeader();
+    });
+</script>
